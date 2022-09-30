@@ -210,6 +210,7 @@ namespace mumfim
                   MumfimPetscCall(VecView(petsc_las->GetVector(), viewer));
                   MumfimPetscCall(SNESSetFunctionDomainError(s));
                 }
+                an->tssu->AcceptDOFs();
                 return 0;
               },
               static_cast<void *>(this)));
@@ -241,7 +242,7 @@ namespace mumfim
             // done the microscale knows that a value of 0 means step is
             // accepted but not converged
             an->finalizeIteration(accepted);
-            an->tssu->AcceptDOFs();
+            //an->tssu->AcceptDOFs();
             // HACK set this to zero so we don't finalize iteration
             // in form function
             an->iteration = 0;

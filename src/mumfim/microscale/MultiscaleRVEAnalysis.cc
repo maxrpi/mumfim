@@ -235,10 +235,10 @@ namespace mumfim
         cs->Communicate(send_ptrn, step_results,
                         amsi::mpi_type<micro_fo_step_result>());
       }
-      bool sim_complete{false};
+      bool sim_complete = false;
       while (!sim_complete)
       {
-        bool step_complete{false};
+        bool step_complete = false;
         int step_accepted{0};
         while (!step_complete)
         {
@@ -302,15 +302,11 @@ namespace mumfim
           cs->Communicate(send_ptrn, results,
                           amsi::mpi_type<micro_fo_result>());
           macro_iter++;
-
+          std::cerr<<"receiving step completed\n";
           cs->scaleBroadcast(M2m_id, &step_accepted);
+          std::cerr<<"DOne receiveing step complete\n";
           bool step_complete = (step_accepted > 0);
-          if(step_accepted) {
-            batched_analysis->accept();
-          }
-          //batched_analysis->accept();
         }
-        //batched_analysis->accept();
         // get the size of the step results vector
         std::vector<micro_fo_step_result> step_results(hdrs.size());
         // recover step results and set the step results vector
