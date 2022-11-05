@@ -19,6 +19,7 @@
 #include "mumfim/microscale/batched_analysis/BatchedFiberRVEAnalysisExplicitTeamOuterLoop.h"
 #include "mumfim/microscale/batched_analysis/BatchedMesh.h"
 #include "mumfim/microscale/batched_analysis/BatchedReorderMesh.h"
+//#include "mumfim/microscale/batched_analysis/BatchedV
 namespace mumfim
 {
   // void updateRVECoords(RVE &rve, const DeformationGradient &
@@ -286,8 +287,6 @@ namespace mumfim
                           displacement.template getAllRows<ExeSpace>());
         Kokkos::deep_copy(trial_volume, current_volume);
         updateVolume<ExeSpace>(deformation_gradients, trial_volume);
-
-
       }
       // if we aren't "updating coords" we are doing a finite difference and
       // that should make use of the last state, not the accepted state!
@@ -337,8 +336,6 @@ namespace mumfim
       computeCauchyStress<ExeSpace>(displacement_boundary_vert,
                                     current_coordinates, force_internal, sigma,
                                     trial_volume, scale_factor);
-      // this is test to verify that everything
-      //  works as expected with accept function
       if (update_coords)
       {
         // will only ever accept after run with update coords,
@@ -350,7 +347,6 @@ namespace mumfim
         Kokkos::deep_copy(this->prev_displacement.template getAllRows<ExeSpace>(),
                           this->trial_displacement.template getAllRows<ExeSpace>());
         this->prev_displacement.template modify<ExeSpace>();
-        //accept();
       }
       return result;
     }
@@ -368,6 +364,16 @@ namespace mumfim
       //this->current_stress_.template modify<ExeSpace>();
       this->displacement.template modify<ExeSpace>();
       this->current_volume.template modify<ExeSpace>();
+      // if the von mises stress is above a threshold reduce the elastic modulus
+      auto von_mises_stress = computeVonMisesStress(this->current_stress_.template view<ExeSpace>());
+      Scalar mises_threshold = 5E10;
+      Kokkos::parallel_for(von_mises_stress.extent(0), KOKKOS_LAMBDA(int i) {
+          auto modulus_d = fiber_elastic_modulus.template getRow<DeviceMemorySpace>(i);
+          if(von_mises_stress(i) > mises_threshold) {
+            modulus_d(0) *= 0.1;
+          }
+      });
+      fiber_elastic_modulus.template modify<DeviceMemorySpace>();
 
     }
     void compute3DOrientationTensor(

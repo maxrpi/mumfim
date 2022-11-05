@@ -286,5 +286,18 @@ namespace mumfim
       }
     }
   };
+  inline Kokkos::View<Scalar*> computeVonMisesStress(Kokkos::View<Scalar*[6]> stress) {
+    Kokkos::View<Scalar*> vonMisesStress("von mises stress", stress.extent(0));
+    Kokkos::parallel_for(stress.extent(0), KOKKOS_LAMBDA(int i) { 
+        Scalar sigma_v_sq = 0.5*( pow(stress(i,0)-stress(i,1),2) +
+                                  pow(stress(i,1)-stress(i,2),2) +
+                                  pow(stress(i,2)-stress(i,0),2) +
+                                  6*(pow(stress(i,3),2) +
+                                     pow(stress(i,4),2) +
+                                     pow(stress(i,5),2)));
+        vonMisesStress(i) = sqrt(sigma_v_sq);
+        });
+    return vonMisesStress;
+  }
 }  // namespace mumfim
 #endif
