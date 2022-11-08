@@ -308,6 +308,9 @@ namespace mumfim
             batched_analysis->accept();
           }
         }
+        batched_analysis->step();
+
+
         // get the size of the step results vector
         std::vector<micro_fo_step_result> step_results(hdrs.size());
         // recover step results and set the step results vector

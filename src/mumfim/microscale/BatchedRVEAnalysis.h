@@ -31,6 +31,8 @@ namespace mumfim
                      bool update_coords = true) = 0;
     /* Accept the state from the last run*/
     virtual void accept() {}
+    // do any operations that happen after a macroscale step is complete
+    virtual void step() {}
     // computes the material stiffness tensor at the current deformation state
     // this should be dSigma/dE, where Sigma is the cauchy stress, and E is the
     // PK2 stress. This should have 36 components due to the symmetry in Sigma

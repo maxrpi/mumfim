@@ -364,17 +364,37 @@ namespace mumfim
       //this->current_stress_.template modify<ExeSpace>();
       this->displacement.template modify<ExeSpace>();
       this->current_volume.template modify<ExeSpace>();
+
+    }
+    void step() final
+    {
+      int rank = -1;
+      MPI_Comm_rank(AMSI_COMM_SCALE, &rank);
       // if the von mises stress is above a threshold reduce the elastic modulus
+      // Note: This will only effect the next step
       auto von_mises_stress = computeVonMisesStress(this->current_stress_.template view<ExeSpace>());
       Scalar mises_threshold = 5E10;
-      Kokkos::parallel_for(von_mises_stress.extent(0), KOKKOS_LAMBDA(int i) {
+      //Kokkos::parallel_for(von_mises_stress.extent(0), KOKKOS_LAMBDA(int i) {
+      //    auto modulus_d = fiber_elastic_modulus.template getRow<DeviceMemorySpace>(i);
+      //    if(von_mises_stress(i) > mises_threshold) {
+      //      modulus_d(0) *= 0.8;
+      //    }
+      //});
+      int num_reduced = 0;
+      Kokkos::parallel_reduce(von_mises_stress.extent(0), KOKKOS_LAMBDA(int i, int& lsum) {
           auto modulus_d = fiber_elastic_modulus.template getRow<DeviceMemorySpace>(i);
           if(von_mises_stress(i) > mises_threshold) {
             modulus_d(0) *= 0.1;
+            ++lsum;
           }
-      });
+      }, num_reduced);
+      int total_reduced=0;
+      MPI_Reduce(&num_reduced, &total_reduced, 1, MPI_INT, MPI_SUM, 0, AMSI_COMM_SCALE);
       fiber_elastic_modulus.template modify<DeviceMemorySpace>();
-
+      if(rank == 0)
+      {
+       std::cout<<"Modulus reduced in " << total_reduced << " RVEs" << std::endl;
+      }
     }
     void compute3DOrientationTensor(
         Kokkos::DualView<Scalar * [3][3], ExeSpace> omega) final
