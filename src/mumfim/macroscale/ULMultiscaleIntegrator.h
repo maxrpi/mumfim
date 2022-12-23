@@ -30,7 +30,12 @@ namespace mumfim
         , dfm_grd_fld(dfm_grd)
         , minimum_stiffness(minimum_stiffness)
     {
+      auto* mesh = apf::getMesh(strn);
+      stiffness_field = apf::createPackedField(mesh, "material_stiffness", 36, apf::getIPShape(3,1));
+      apf::zeroField(stiffness_field);
+
     }
+    virtual ~ULMultiscaleIntegrator() { delete stiffness_field; }
     void inElement(apf::MeshElement * me) override
     {
       ElementalSystem::inElement(me);
@@ -169,6 +174,8 @@ namespace mumfim
           0.5 * (rightCauchyGreen(2, 2) - 1));
       apf::setMatrix(strain_field, m, current_integration_point, greenStrain);
       apf::setMatrix(stress_field, m, current_integration_point, Cauchy);
+      // stiffness tensor starts at 9 and has 36 components.
+      apf::setComponents(stiffness_field, m, current_integration_point, &rslt->data[9]);
       current_integration_point++;
     }
     int current_integration_point;
@@ -182,6 +189,7 @@ namespace mumfim
     apf::Element * du_lmnt;
     apf::Field * dfm_grd_fld;
     double minimum_stiffness;
+    apf::Field* stiffness_field;
   };
 }  // namespace mumfim
 #endif

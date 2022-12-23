@@ -100,7 +100,9 @@ namespace mumfim
   struct micro_fo_step_result
   {
     // 9 for 3D orientation tensor, and 9 for the 2D orientation tensor
-    double data[9+9];
+    // 1 for current step failed (bool)
+    // 1 for current fiber modulus
+    double data[9+9+1+1];
   };
 }
 namespace amsi

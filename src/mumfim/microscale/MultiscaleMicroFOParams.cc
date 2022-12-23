@@ -74,7 +74,7 @@ namespace amsi
     static static_init<MPI_Datatype> tp;
     if(!tp.init)
     {
-      MPI_Type_contiguous(9+9,MPI_DOUBLE,&tp.val);
+      MPI_Type_contiguous(9+9+1+1,MPI_DOUBLE,&tp.val);
       MPI_Type_commit(&tp.val);
       tp.init = true;
     }
