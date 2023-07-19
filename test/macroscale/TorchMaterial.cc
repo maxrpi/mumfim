@@ -49,9 +49,9 @@ TEST_CASE("EvaluateTorch", "[material][torch]")
   {
     for (int j = 0; j <= i; ++j)
     {
-      // set a relatively large margin since pytorch is using single precision
-      // the full stiffness tensor is constructed in pytorch (unlike the stress
-      // which only fits the upper triangle) and then symmetrized in the pytorch
+      // set a relatively large margin since torch is using single precision
+      // the full stiffness tensor is constructed in torch (unlike the stress
+      // which only fits the upper triangle) and then symmetrized in the torch
       // material
       REQUIRE(stiffness(i, j) == Approx(stiffness(j, i)).margin(1e-4));
     }

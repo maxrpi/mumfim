@@ -3,6 +3,7 @@
 
 #include <mumfim/macroscale/materials/MaterialResult.h>
 #include <torch/script.h>
+#include <apf.h>
 
 namespace mumfim
 {

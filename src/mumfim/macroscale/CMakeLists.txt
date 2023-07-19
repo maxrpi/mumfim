@@ -38,7 +38,7 @@ target_link_libraries(biotissue
         amsi::amsi)
 
 if (MUMFIM_ENABLE_Torch)
-    target_link_libraries(biotissue PUBLIC ${TORCH_LIBRARIES})
+    target_link_libraries(biotissue PUBLIC mumfim::torch_utils)
     target_compile_definitions(biotissue PUBLIC -DMUMFIM_ENABLE_TORCH)
 endif ()
 

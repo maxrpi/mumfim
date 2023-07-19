@@ -111,7 +111,7 @@ namespace mumfim
       const auto * poisson_ratio =
           mt::GetCategoryModelTraitByType<mt::ScalarMT>(continuum_model,
                                                         "poisson ratio");
-      // Even pytorch needs a young's modulus, poisson ratio b/c
+      // Even torch needs a young's modulus, poisson ratio b/c
       // LinearTissue is used as an initial guess. The initial guess should
       // be based off the same continuum material model as the nonlinear tissue
       // TODO: LinearTissue uses same continuum material model as
@@ -151,7 +151,7 @@ namespace mumfim
                 &axs[0], (*axial_shear_modulus)(), (*axial_youngs_modulus)(),
                 1);
       }
-      else if (continuum_model->GetType() == "pytorch")
+      else if (continuum_model->GetType() == "torch")
       {
 #ifdef MUMFIM_ENABLE_TORCH
         const auto * model_file = mt::GetCategoryModelTraitByType<mt::StringMT>(

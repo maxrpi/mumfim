@@ -1,3 +1,6 @@
+if (MUMFIM_ENABLE_Torch)
+    add_subdirectory(mumfim/torch)
+endif ()
 add_subdirectory(mumfim/macroscale)
 add_subdirectory(mumfim/microscale)
 
@@ -29,14 +32,11 @@ target_link_libraries(batched_fiber_only PUBLIC micro_fo)
 SET(MUMFIM_INSTALL_TARGETS mumfim_singlescale mumfim_multiscale fiber_only batched_fiber_only)
 
 if (MUMFIM_ENABLE_ADIOS2)
-  find_package(adios2 REQUIRED)
-  add_executable(adios_fiber_only adios_fiber_only.cc)
-  target_link_libraries(adios_fiber_only PUBLIC micro_fo adios2::cxx11_mpi adios2::core adios2::core_mpi adios2::adios2)
-  LIST(APPEND MUMFIM_INSTALL_TARGETS adios_fiber_only)
-endif()
-
-
-
+    find_package(adios2 REQUIRED)
+    add_executable(adios_fiber_only adios_fiber_only.cc)
+    target_link_libraries(adios_fiber_only PUBLIC micro_fo adios2::cxx11_mpi adios2::core adios2::core_mpi adios2::adios2)
+    LIST(APPEND MUMFIM_INSTALL_TARGETS adios_fiber_only)
+endif ()
 
 
 install(TARGETS ${MUMFIM_INSTALL_TARGETS} RUNTIME DESTINATION bin)
