@@ -9,6 +9,7 @@ namespace mumfim
     FIBER_ONLY,
     FIBER_MATRIX,
     ISOTROPIC_NEOHOOKEAN,
+    TORCH,
     MICROSCALE_TYPE_COUNT
   };
   // TODO move orientation tensor fields to own structs

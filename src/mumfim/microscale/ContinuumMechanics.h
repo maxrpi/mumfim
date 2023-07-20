@@ -141,6 +141,26 @@ namespace mumfim {
         });
     return left_cauchy_green;
   }
+  template <typename T, typename... Args>
+  auto ComputeRightCauchyGreenDeformation(Kokkos::View<T * [3][3], Args...> F)
+  -> Kokkos::View<T * [3][3], Args...>
+  {
+    // TODO no initialize
+    Kokkos::View<T * [3][3], Args...> left_cauchy_green(
+        "left cauchy green deformation tensor", F.extent(0));
+    Kokkos::parallel_for(
+        F.extent(0), KOKKOS_LAMBDA(const int i) {
+          using namespace KokkosBatched;
+          using namespace Kokkos;
+          auto F_i = Kokkos::subview(F, i, Kokkos::ALL(), Kokkos::ALL());
+          auto left_cauchy_green_i = Kokkos::subview(
+              left_cauchy_green, i, Kokkos::ALL(), Kokkos::ALL());
+          SerialGemm<Trans::Transpose, Trans::NoTranspose,
+                     Algo::Gemm::Unblocked>::invoke(1.0, F_i, F_i, 0.0,
+                                                    left_cauchy_green_i);
+        });
+    return left_cauchy_green;
+  }
   template<typename ViewT>
   auto FillIdentity(ViewT view) -> std::enable_if_t<Kokkos::is_view<ViewT>::value && ViewT::rank == 3, void>
   {

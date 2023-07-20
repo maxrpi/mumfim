@@ -28,6 +28,10 @@ target_link_libraries(fiber_only PUBLIC micro_fo)
 
 add_executable(batched_fiber_only batched_fiber_only.cc)
 target_link_libraries(batched_fiber_only PUBLIC micro_fo)
+if(MUMFIM_ENABLE_Torch)
+    add_executable(batched_torch batched_torch.cc)
+    target_link_libraries(batched_torch PUBLIC micro_fo)
+endif()
 
 SET(MUMFIM_INSTALL_TARGETS mumfim_singlescale mumfim_multiscale fiber_only batched_fiber_only)
 

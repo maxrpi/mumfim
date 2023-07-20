@@ -1,8 +1,10 @@
 #ifndef MUMFIM_SRC_MUMFIM_PYTORCH_TORCHUTILITIES_H
 #define MUMFIM_SRC_MUMFIM_PYTORCH_TORCHUTILITIES_H
-#include <torch/script.h>
 #include <apfDynamicMatrix.h>
 #include <apfMatrix.h>
+#include <torch/script.h>
+
+#include <Kokkos_core.hpp>
 
 namespace mumfim
 {
@@ -61,7 +63,80 @@ namespace mumfim
     [[nodiscard]] apf::DynamicMatrix TorchTensorToApfDynamicMatrix(
         const torch::Tensor & tensor_in);
 
-  }  // namespace torch
+    template <typename ViewT>
+    void CheckTensorViewCompatibility(const torch::Tensor & tensor,
+                                      const ViewT & view)
+    {
+      KOKKOS_ASSERT(ViewT::rank == tensor.dim());
+      for (int i = 0; i < ViewT::rank; ++i)
+      {
+        KOKKOS_ASSERT(view.extent(i) == tensor.sizes()[i]);
+      }
+      static_assert(
+          Kokkos::SpaceAccessibility<typename ViewT::memory_space,
+                                     Kokkos::HostSpace>::accessible,
+          "torch array conversion not currently implemented on GPU\n");
+    }
+
+    template <typename ViewT>
+    void KokkosViewToTorchArray(const ViewT & view, torch::Tensor tensor)
+    {
+      CheckTensorViewCompatibility(tensor, view);
+      static_assert(ViewT::rank == 2 || ViewT::rank == 3,
+                    "view must be rank 2 or 3");
+      if constexpr (ViewT::rank == 2)
+      {
+        auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<ViewT::rank>>(
+            {0, 0}, {view.extent(1), view.extent(2)});
+        Kokkos::parallel_for(
+            "KokkosViewToTorchArray", policy,
+            KOKKOS_LAMBDA(int i, int j) {
+              tensor.index({i,j}) = view(i, j);
+            });
+      }
+      if constexpr (ViewT::rank == 3)
+      {
+        auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<ViewT::rank>>(
+            {0, 0, 0}, {view.extent(0), view.extent(1), view.extent(2)});
+        Kokkos::parallel_for(
+            "KokkosViewToTorchArray", policy,
+            KOKKOS_LAMBDA(int i, int j, int k) {
+              tensor.index({i,j,k}) = view(i, j, k);
+            });
+      }
+
+    }
+
+    template <typename ViewT>
+    void TorchArrayToKokkosView(const torch::Tensor & tensor, ViewT & view)
+    {
+      CheckTensorViewCompatibility(tensor, view);
+      static_assert(ViewT::rank == 2 || ViewT::rank == 3,
+                    "view must be rank 2 or 3");
+      // this should by the torch array type which is float by default
+      auto tensor_accessor = tensor.accessor<float, ViewT::rank>();
+      if constexpr (ViewT::rank == 2)
+      {
+        auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<ViewT::rank>>(
+            {0, 0}, {view.extent(0), view.extent(1)});
+        Kokkos::parallel_for(
+            "KokkosViewToTorchArray", policy,
+            KOKKOS_LAMBDA(const int i, const int j) {
+              view(i, j) = tensor_accessor[i][j];
+            });
+      }
+      else if constexpr (ViewT::rank == 3)
+      {
+        auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<ViewT::rank>>(
+            {0, 0, 0}, {view.extent(0), view.extent(1), view.extent(2)});
+        Kokkos::parallel_for(
+            "KokkosViewToTorchArray", policy,
+            KOKKOS_LAMBDA(const int i, const int j, const int k) {
+              view(i, j, k) = tensor_accessor[i][j][k];
+            });
+      }
+    }
+  }  // namespace ml
 }  // namespace mumfim
 
 #endif  // MUMFIM_SRC_MUMFIM_PYTORCH_TORCHUTILITIES_H

@@ -68,6 +68,10 @@ if(yaml-cpp_FOUND)
   target_compile_definitions(micro_fo PUBLIC -DHAS_YAML_CPP)
 endif()
 
+if (MUMFIM_ENABLE_Torch)
+    target_link_libraries(micro_fo PUBLIC mumfim::torch_utils)
+endif ()
+
 set(ENABLE_VERBOSITY HIGH CACHE STRING "Enable Debug/Verbosity Level")
 set_property(CACHE ENABLE_VERBOSITY PROPERTY STRINGS HIGH MED LOW OFF)
 if(ENABLE_VERBOSITY)

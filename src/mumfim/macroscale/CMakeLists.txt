@@ -39,7 +39,6 @@ target_link_libraries(biotissue
 
 if (MUMFIM_ENABLE_Torch)
     target_link_libraries(biotissue PUBLIC mumfim::torch_utils)
-    target_compile_definitions(biotissue PUBLIC -DMUMFIM_ENABLE_TORCH)
 endif ()
 
 target_include_directories(biotissue PUBLIC

@@ -42,6 +42,7 @@ namespace mumfim
     //  with the same set of statistical properties i.e. density
     std::vector<char*> rve_tp_dirs;
     FiberNetworkLibrary network_library;
+    MicroscaleType analysis_type;
    
     int macro_iter;
     int macro_step;

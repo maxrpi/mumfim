@@ -17,6 +17,9 @@
 #include "MultiscaleMicroFOParams.h"
 #include "NeoHookeanRVEAnalysis.h"
 #include "mumfim/exceptions.h"
+#ifdef MUMFIM_ENABLE_TORCH
+#include <mumfim/microscale/BatchedTorchAnalysis.h>
+#endif
 namespace mumfim
 {
   MultiscaleRVEAnalysis::~MultiscaleRVEAnalysis() = default;
@@ -149,6 +152,14 @@ namespace mumfim
       micro_fo_solver & slvr_prm = slvr_prms[i];
       micro_fo_int_solver & slvr_int_prm = slvr_int_prms[i];
       MicroscaleType micro_tp = static_cast<MicroscaleType>(hdr.data[RVE_TYPE]);
+      if(i==0){
+        analysis_type = micro_tp;
+      }
+      else if (analysis_type != micro_tp) {
+        throw mumfim_error("MultiscaleRVEAnalysis::updateCoupling: "
+                           "Inconsistent RVE types. Currently only Single RVE "
+                           "type supported with batched analysis mode");
+      }
       if (micro_tp == MicroscaleType::FIBER_ONLY)
       {
         int tp = hdr.data[RVE_DIR_TYPE];
@@ -178,6 +189,8 @@ namespace mumfim
         //*rve = initNeoHookeanRVEAnalysisFromMultiscale(prm);
         MPI_Abort(AMSI_COMM_WORLD, EXIT_FAILURE);
       }
+      // torch model doesn't need special treatment
+      else if(micro_tp == MicroscaleType::TORCH) { }
       else
       {
         std::cerr << "The Microscale/RVE type is not valid" << std::endl;
@@ -186,10 +199,14 @@ namespace mumfim
     }
     if (to_add.size() > 0)
     {
-       batched_analysis = BatchedAnalysisType{
-           new BatchedFiberRVEAnalysisExplicit<Scalar, LocalOrdinal,
-                                               Kokkos::DefaultExecutionSpace>{
-               std::move(fiber_networks), std::move(solution_strategies)}};
+       //batched_analysis = BatchedAnalysisType{
+       //    new BatchedFiberRVEAnalysisExplicit<Scalar, LocalOrdinal,
+       //                                        Kokkos::DefaultExecutionSpace>{
+       //        std::move(fiber_networks), std::move(solution_strategies)}};
+
+      batched_analysis=std::make_unique<BatchedTorchAnalysis<Scalar, LocalOrdinal,Kokkos::DefaultHostExecutionSpace>>(
+                                                "/Users/jacobmerson/code/machine_learn_fiber_network_constitutive/kuhl-network.pt",
+                                                fiber_networks.size());
       //batched_analysis = BatchedAnalysisType{
       //    new BatchedNeohookeanAnalysis<Scalar, LocalOrdinal,
       //                                  Kokkos::DefaultExecutionSpace>(

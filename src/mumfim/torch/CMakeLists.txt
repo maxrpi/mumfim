@@ -7,7 +7,9 @@ add_library(mumfim::torch_utils ALIAS mumfim_torch_utils)
 
 find_package(Torch)
 find_package(SCOREC REQUIRED)
-target_link_libraries(mumfim_torch_utils PUBLIC ${TORCH_LIBRARIES} SCOREC::apf)
+find_package(Kokkos REQUIRED)
+target_link_libraries(mumfim_torch_utils PUBLIC ${TORCH_LIBRARIES} SCOREC::apf Kokkos::kokkos)
+target_compile_definitions(mumfim_torch_utils PUBLIC -DMUMFIM_ENABLE_TORCH)
 
 target_include_directories(mumfim_torch_utils PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
