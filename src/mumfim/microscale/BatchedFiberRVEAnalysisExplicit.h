@@ -155,7 +155,7 @@ namespace mumfim
       scale_factor.template modify<HostMemorySpace>();
       for (size_t i = 0; i < fiber_networks.size(); ++i)
       {
-        scale_factor.h_view(i) = fiber_networks[i]->getScaleConversion();
+        scale_factor.h_view(i) = 1.0;
         dof_counts_h(i) = fiber_networks[i]->getDofCount() / 3;
         // since we are dealing with trusses all elements are just lines
         element_counts_h(i) =
