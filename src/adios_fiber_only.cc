@@ -35,6 +35,7 @@ auto ReadAdiosDeformations(const char* inputfile, adios2::ADIOS& ad, MPI_Comm co
  			bpReaderIO.SetEngine("BP");
  	}
 	adios2::Engine bpReader = bpReaderIO.Open(inputfile, adios2::Mode::Read, comm);
+  bpReader.BeginStep();
 	
 	auto v = bpReaderIO.InquireVariable<double>("F");
 	auto shape = v.Shape();
@@ -47,6 +48,7 @@ auto ReadAdiosDeformations(const char* inputfile, adios2::ADIOS& ad, MPI_Comm co
   Kokkos::View<double*[3][3], Kokkos::LayoutRight, Kokkos::HostSpace> data("F", cnt);
   v.SetSelection({start,count});
   bpReader.Get(v, data.data(), adios2::Mode::Sync);
+  bpReader.EndStep();
 	bpReader.Close();
   return std::pair {shape[0], data};
 }
