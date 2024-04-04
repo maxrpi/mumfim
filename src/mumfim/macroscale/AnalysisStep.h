@@ -3,6 +3,7 @@
 #include <apfFEA.h>
 #include <memory>
 #include <unordered_map>
+#include "mumfim/exceptions.h"
 namespace mumfim
 {
   class AnalysisStep : public amsi::apfFEA
@@ -75,6 +76,17 @@ namespace mumfim
       }
       apf_mesh->end(it);
     }
+
+    public:
+    [[nodiscard]] virtual apf::Field * getUField()=0;
+    virtual void preRun (){};
+    virtual void step (){};
+    virtual void iter (){};
+    virtual void AcceptDOFs (){};
+    virtual void recoverSecondaryVariables(int){};
+    virtual void computeInitGuess(amsi::LAS* las){};
+
+
   };
 }  // namespace mumfim
 #endif  // MUMFIM_SRC_MUMFIM_MACROSCALE_MULTISCALETISSUE_CC_TISSUEBASE_H

@@ -17,7 +17,7 @@ namespace mumfim
                  MPI_Comm cm);
     virtual void UpdateDOFs(const double * sol) override;
     virtual void Assemble(amsi::LAS * las) override;
-    apf::Field * getField() { return apf_primary_field; }
+    [[nodiscard]] apf::Field * getUField() final { return apf_primary_field; }
   };
 }  // namespace mumfim
 #endif

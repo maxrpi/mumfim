@@ -207,8 +207,8 @@ namespace mumfim
     lt.setSimulationTime(T);
     LinearSolver(&lt, las);
     las->iter();
-    apf::copyData(delta_u, lt.getField());
-    apf::copyData(apf_primary_field, lt.getField());
+    apf::copyData(delta_u, lt.getUField());
+    apf::copyData(apf_primary_field, lt.getUField());
   }
 
   void NonlinearTissueStep::step()

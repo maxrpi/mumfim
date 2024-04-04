@@ -67,7 +67,7 @@ namespace mumfim
     int getIteration() { return iteration; }
     apf::Numbering* getNumbering() { return apf_primary_numbering; }
     //apf::Field* getdUField() { return delta_u; }
-    apf::Field* getUField() { return apf_primary_field; }
+    [[nodiscard]] apf::Field* getUField() final { return apf_primary_field; } 
     apf::Mesh* getMesh() { return apf_mesh; }
     // void logCnstrntParams(int ldstp, int iteration, int rnk);
     // function to get mapping by summing reference coordinate with

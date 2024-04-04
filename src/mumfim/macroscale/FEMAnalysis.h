@@ -58,7 +58,7 @@ namespace mumfim
     int stp;
     int mx_stp;
     int iteration{0};
-    NonlinearTissueStep * tssu;
+    AnalysisStep * tssu;
     // this is actually a MultiIteration
     amsi::MultiIteration * itr;
     std::vector<amsi::Iteration *> itr_stps;
@@ -80,11 +80,11 @@ namespace mumfim
   class TissueIteration : public amsi::Iteration
   {
     protected:
-    NonlinearTissueStep * tssu;
+    AnalysisStep * tssu;
     amsi::LAS * las;
 
     public:
-    TissueIteration(NonlinearTissueStep * t, amsi::LAS * l) : tssu(t), las(l) {}
+    TissueIteration(AnalysisStep * t, amsi::LAS * l) : tssu(t), las(l) {}
     virtual void iterate()
     {
       // Note this is same as FEMLinearIteration
