@@ -58,7 +58,7 @@ namespace mumfim
     int stp;
     int mx_stp;
     int iteration{0};
-    AnalysisStep * tssu;
+    AnalysisStep * analysis_step_;
     // this is actually a MultiIteration
     amsi::MultiIteration * itr;
     std::vector<amsi::Iteration *> itr_stps;
