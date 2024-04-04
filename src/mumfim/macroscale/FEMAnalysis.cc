@@ -1,4 +1,4 @@
-#include "mumfim/macroscale/TissueAnalysis.h"
+#include "mumfim/macroscale/FEMAnalysis.h"
 #include <amsiPETScLAS.h>
 #include <apf.h>
 #include <petscsnes.h>
@@ -11,7 +11,7 @@
 //  throw mumfim::petsc_error(petsc_error_code); }
 namespace mumfim
 {
-  TissueAnalysis::TissueAnalysis(apf::Mesh * mesh,
+  FEMAnalysis::FEMAnalysis(apf::Mesh * mesh,
                                  std::unique_ptr<const mt::CategoryNode> cs,
                                  MPI_Comm c,
                                  const amsi::Analysis & amsi_analysis)
@@ -68,7 +68,7 @@ namespace mumfim
                      << "   0,    0, 0.0, init\n";
 #endif
   }
-  void TissueAnalysis::addVolumeTracking(
+  void FEMAnalysis::addVolumeTracking(
       apf::Mesh * mesh,
       const mt::CategoryNode * solution_strategy)
   {
@@ -85,7 +85,7 @@ namespace mumfim
       }
     }
   }
-  TissueAnalysis::~TissueAnalysis()
+  FEMAnalysis::~FEMAnalysis()
   {
     // since we know all of the iteration steps are allocated on the heap delete
     // them
@@ -109,7 +109,7 @@ namespace mumfim
     amsi::deleteLog(state);
 #endif
   }
-  void TissueAnalysis::run()
+  void FEMAnalysis::run()
   {
     try
     {
@@ -147,7 +147,7 @@ namespace mumfim
                 // bit hacky...if the last finalized iteration is same as
                 // previous
                 static int num_calls = 0;
-                auto * an = static_cast<TissueAnalysis *>(ctx);
+                auto * an = static_cast<FEMAnalysis *>(ctx);
                 auto * petsc_las = dynamic_cast<amsi::PetscLAS *>(an->las);
                 try
                 {
@@ -219,7 +219,7 @@ namespace mumfim
           [](::SNES snes, Vec displacement, Mat Amat, Mat Pmat,
              void * ctx) -> PetscErrorCode
           {
-            auto * an = static_cast<TissueAnalysis *>(ctx);
+            auto * an = static_cast<FEMAnalysis *>(ctx);
             auto * petsc_las = dynamic_cast<amsi::PetscLAS *>(an->las);
             MatCopy(petsc_las->GetMatrix(), Amat, SAME_NONZERO_PATTERN);
             MatScale(Amat, -1);
@@ -232,7 +232,7 @@ namespace mumfim
              PetscReal f, SNESConvergedReason * reason,
              void * ctx) -> PetscErrorCode
           {
-            auto * an = static_cast<TissueAnalysis *>(ctx);
+            auto * an = static_cast<FEMAnalysis *>(ctx);
             auto error =
                 SNESConvergedDefault(snes, it, xnorm, gnorm, f, reason, ctx);
             bool converged =
@@ -333,9 +333,9 @@ namespace mumfim
       throw;
     }
   }
-  void TissueAnalysis::finalizeStep(){};
-  void TissueAnalysis::finalizeIteration(int){};
-  void TissueAnalysis::checkpoint()
+  void FEMAnalysis::finalizeStep(){};
+  void FEMAnalysis::finalizeIteration(int){};
+  void FEMAnalysis::checkpoint()
   {
 #ifdef LOGRUN
     std::ofstream st_fs(state_fn.c_str(), std::ios::out | std::ios::app);

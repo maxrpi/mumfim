@@ -1,6 +1,6 @@
 #ifndef MUMFIM_ULMULTISCALE_HYDROSTATIC_PRESSURE_INTEGRATOR_H_
 #define MUMFIM_ULMULTISCALE_HYDROSTATIC_PRESSURE_INTEGRATOR_H_
-#include "NonlinearTissue.h"
+#include "NonlinearTissueStep.h"
 #include <amsiDeformation.h>
 #include <ElementalSystem.h>
 #include <apfShape.h>

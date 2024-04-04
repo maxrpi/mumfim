@@ -1,13 +1,13 @@
 set(biotissue_src_files
         Analysis.cc
-        LinearTissue.cc
+        LinearTissueStep.cc
         MultiscaleTissue.cc
         ModelTraits.cc
-        NonlinearTissue.cc
+        NonlinearTissueStep.cc
         ReadStochasticField.cc
         RVECoupling.cc
         StiffnessVariation.cc
-        TissueAnalysis.cc
+        FEMAnalysis.cc
         MultiscaleTissueAnalysis.cc
         SinglescaleTissueAnalysis.cc
         VolumeConstraint.cc

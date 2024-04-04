@@ -4,7 +4,7 @@
 #include <model_traits/AssociatedModelTraits.h>
 #include <map>
 #include <string>
-#include "TissueBase.h"
+#include "AnalysisStep.h"
 #include "mumfim/macroscale/ULMultiscaleHydrostaticPressureIntegrator.h"
 #include "mumfim/macroscale/ULMultiscaleIntegrator.h"
 #include "mumfim/microscale/MicroFOParams.h"
@@ -75,7 +75,7 @@ namespace mumfim
                                      const mt::CategoryNode & analysis_case,
                                      MPI_Comm cm,
                                      const amsi::Multiscale & amsi_multiscale)
-      : NonlinearTissue(mesh, analysis_case, cm)
+      : NonlinearTissueStep(mesh, analysis_case, cm)
       , mltscl(nullptr)
       , crt_rve(apf::createIPField(apf_mesh, "micro_rve_type", apf::SCALAR, 1))
       , prv_rve(apf::createIPField(apf_mesh, "micro_old_type", apf::SCALAR, 1))
@@ -298,7 +298,7 @@ namespace mumfim
   }
   void MultiscaleTissue::recoverSecondaryVariables(int step)
   {
-    NonlinearTissue::recoverSecondaryVariables(step);
+    NonlinearTissueStep::recoverSecondaryVariables(step);
     fo_cplg.recvRVEStepData();
     // loop over all mesh regions
     apf::MeshIterator * it = apf_mesh->begin(analysis_dim);

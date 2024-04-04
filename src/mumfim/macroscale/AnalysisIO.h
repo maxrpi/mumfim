@@ -4,7 +4,7 @@
 #include <apf.h>
 namespace mumfim
 {
-  class NonlinearTissue;
+  class NonlinearTissueStep;
   /**
    * @brief for each model item in the range [bgn_mdl_itm,nd_mdl_itm),
    *  print the step, entity tag, and volume to the specified log
@@ -22,7 +22,7 @@ namespace mumfim
    *  step, entity tag, and loads in the i, j, and k directions.
    */
   template <typename I>
-    void logForces(I bgn, I end, amsi::Log log, int stp, NonlinearTissue * tssu);
+    void logForces(I bgn, I end, amsi::Log log, int stp, NonlinearTissueStep * tssu);
 }
 #include "AnalysisIO_impl.h"
 #endif

@@ -43,7 +43,7 @@ namespace mumfim
       MPI_Comm cm,
       const amsi::Analysis & amsi_analysis,
       const amsi::Multiscale & amsi_multiscale)
-      : TissueAnalysis(mesh, std::move(analysis_case), cm, amsi_analysis)
+      : FEMAnalysis(mesh, std::move(analysis_case), cm, amsi_analysis)
       , cplng(getRelationID(amsi_multiscale.getMultiscaleManager(),
                             amsi_multiscale.getScaleManager(),
                             "macro",

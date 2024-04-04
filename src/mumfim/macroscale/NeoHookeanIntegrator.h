@@ -6,7 +6,7 @@
 #include <cmath>  //natural log
 #include <cstring>
 #include "materials/Materials.h"
-#include "NonlinearTissue.h"
+#include "NonlinearTissueStep.h"
 #include "UpdatedLagrangianMaterialIntegrator.h"
 namespace mumfim
 {

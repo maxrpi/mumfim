@@ -5,10 +5,10 @@
 #include <unordered_map>
 namespace mumfim
 {
-  class TissueBase : public amsi::apfFEA
+  class AnalysisStep : public amsi::apfFEA
   {
     protected:
-    TissueBase(apf::Mesh * mesh,
+    AnalysisStep(apf::Mesh * mesh,
                const mt::CategoryNode & analysis_case,
                std::vector<amsi::DirichletBCEntry> dbc,
                std::vector<amsi::NeumannBCEntry> nbc,
@@ -22,7 +22,7 @@ namespace mumfim
                        cm)
     {
     }
-    TissueBase(apf::Mesh * mesh,
+    AnalysisStep(apf::Mesh * mesh,
                const amsi::ModelDefinition & problem_definition,
                const amsi::ModelDefinition & solution_strategy,
                const amsi::ModelDefinition & output,

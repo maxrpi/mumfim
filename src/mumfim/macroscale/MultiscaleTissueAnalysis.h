@@ -7,9 +7,9 @@
 #include <model_traits/CategoryNode.h>
 #include <stdexcept>
 #include <string>
-#include "LinearTissue.h"
+#include "LinearTissueStep.h"
 #include "MultiscaleTissue.h"
-#include "TissueAnalysis.h"
+#include "FEMAnalysis.h"
 #include "VolumeConvergence.h"
 namespace mumfim
 {
@@ -28,7 +28,7 @@ namespace mumfim
     ~MultiscaleTissueIteration() { delete fem_iter; }
     void iterate();
   };
-  class MultiscaleTissueAnalysis : public TissueAnalysis
+  class MultiscaleTissueAnalysis : public FEMAnalysis
   {
     public:
     MultiscaleTissueAnalysis(apf::Mesh * mesh,

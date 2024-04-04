@@ -1,16 +1,16 @@
-#include "LinearTissue.h"
+#include "LinearTissueStep.h"
 #include <amsiLinearElasticConstitutive.h>
 #include <amsiNeumannIntegrators.h>
 #include <apfFunctions.h>
 #include <gmi.h>
 namespace mumfim
 {
-  LinearTissue::LinearTissue(apf::Mesh * mesh,
+  LinearTissueStep::LinearTissueStep(apf::Mesh * mesh,
                              const amsi::ModelDefinition & problem_definition,
                              const amsi::ModelDefinition & solution_strategy,
                              const amsi::ModelDefinition & output,
                              MPI_Comm cm)
-      : TissueBase(mesh,
+      : AnalysisStep(mesh,
                    problem_definition,
                    solution_strategy,
                    output,
@@ -90,7 +90,7 @@ namespace mumfim
     }
     gmi_end(gmodel, it);
   }
-  void LinearTissue::UpdateDOFs(const double * sl)
+  void LinearTissueStep::UpdateDOFs(const double * sl)
   {
     amsi::WriteOp wrop;
     amsi::FreeApplyOp frop(apf_primary_numbering, &wrop);
@@ -99,10 +99,10 @@ namespace mumfim
         .run();
     apf::synchronize(apf_primary_field);
   }
-  void LinearTissue::Assemble(amsi::LAS * las)
+  void LinearTissueStep::Assemble(amsi::LAS * las)
   {
-    // For the LinearTissue, the coordinate field is assumed to be the meshes
-    // coordinate field. This is unlike what's used in NonlinearTissue and
+    // For the LinearTissueStep, the coordinate field is assumed to be the meshes
+    // coordinate field. This is unlike what's used in NonlinearTissueStep and
     // MultiscaleTissue
     ApplyBC_Neumann(las);
     AssembleIntegratorIntoLAS(

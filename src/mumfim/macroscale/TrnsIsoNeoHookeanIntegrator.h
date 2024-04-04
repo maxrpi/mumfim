@@ -1,6 +1,6 @@
 #ifndef MUMFIM_TRANSVERSELY_ISOTROPIC_NEOHOOKEAN_INTEGRATOR_H_
 #define MUMFIM_TRANSVERSELY_ISOTROPIC_NEOHOOKEAN_INTEGRATOR_H_
-#include "NonlinearTissue.h"
+#include "NonlinearTissueStep.h"
 #include <ElementalSystem.h>
 #include <apfShape.h>
 #include <cstring>
@@ -11,7 +11,7 @@ namespace mumfim
   class TrnsIsoNeoHookeanIntegrator : public amsi::ElementalSystem
   {
   public:
-  TrnsIsoNeoHookeanIntegrator(NonlinearTissue * n,
+  TrnsIsoNeoHookeanIntegrator(NonlinearTissueStep * n,
 			      apf::Field * field,
 			      apf::Field * stf_vrtn,
 			      apf::Field * dfm_grd,
@@ -301,7 +301,7 @@ namespace mumfim
     apf::Field * stf_vrtn_fld;
     apf::Field * EA_fld;
     apf::Field * dfm_grd_fld;
-    NonlinearTissue * analysis;
+    NonlinearTissueStep * analysis;
     int dim;
     apf::Mesh * msh;
     apf::Field *current_coords;

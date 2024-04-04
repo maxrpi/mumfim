@@ -4,11 +4,11 @@ mumfim::SinglescaleTissueAnalysis::SinglescaleTissueAnalysis(
     std::unique_ptr<const mt::CategoryNode> cs,
     MPI_Comm c,
     const amsi::Analysis & amsi_analysis)
-    : TissueAnalysis(mesh, std::move(cs), c, amsi_analysis)
+    : FEMAnalysis(mesh, std::move(cs), c, amsi_analysis)
 {
   const auto * solution_strategy =
       mt::GetPrimaryCategoryByType(analysis_case.get(), "solution strategy");
-  tssu = new NonlinearTissue(mesh, *analysis_case, cm);
+  tssu = new NonlinearTissueStep(mesh, *analysis_case, cm);
   addVolumeTracking(mesh, solution_strategy);
   // We want to do the tissue iteration after we compute the volumes
   itr_stps.push_back(new TissueIteration(tssu, las));

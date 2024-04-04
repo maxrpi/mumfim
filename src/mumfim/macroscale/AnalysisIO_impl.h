@@ -1,6 +1,6 @@
 #include <apfMeasure.h>
 #include <apfWrapper.h>
-#include "NonlinearTissue.h"
+#include "NonlinearTissueStep.h"
 namespace mumfim
 {
   template <typename I>
@@ -71,7 +71,7 @@ namespace mumfim
     }
   }
   template <typename I>
-  void logForces(I bgn, I end, amsi::Log lg, int stp, NonlinearTissue * tssu)
+  void logForces(I bgn, I end, amsi::Log lg, int stp, NonlinearTissueStep * tssu)
   {
     int rnk = -1;
     MPI_Comm_rank(AMSI_COMM_SCALE, &rnk);

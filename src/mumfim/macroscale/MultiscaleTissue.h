@@ -3,14 +3,14 @@
 #include <memory>
 #include <unordered_map>
 #include "MultiscaleTissue.h"
-#include "NonlinearTissue.h"
+#include "NonlinearTissueStep.h"
 #include "RVECoupling.h"
 #include "ReadStochasticField.h"
 namespace mumfim
 {
   using StochasticFieldMap = std::map<std::string, std::shared_ptr<GridData> >;
   // refactor so this is only dealing with a single type of RVE
-  class MultiscaleTissue : public NonlinearTissue
+  class MultiscaleTissue : public NonlinearTissueStep
   {
     public:
     MultiscaleTissue(apf::Mesh * mesh,
@@ -86,5 +86,5 @@ namespace mumfim
   };
 }  // namespace mumfim
 #include "MultiscaleTissue_impl.h"
-#include "TissueBase.h"
+#include "AnalysisStep.h"
 #endif

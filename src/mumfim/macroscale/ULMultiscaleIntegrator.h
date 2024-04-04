@@ -5,7 +5,7 @@
 #include <apfMatrixUtil.h>
 #include <apfShape.h>
 #include <cstring>
-#include "NonlinearTissue.h"
+#include "NonlinearTissueStep.h"
 #include "mumfim/macroscale/RVECoupling.h"
 namespace mumfim
 {
