@@ -1,7 +1,7 @@
 #ifndef MUMFIM_TISSUE_ANALYSIS_H_
 #define MUMFIM_TISSUE_ANALYSIS_H_
 #include <amsiNonlinearAnalysis.h>
-#include "NonlinearTissue.h"
+#include "NonlinearTissueStep.h"
 #include "VolumeConvergence.h"
 #include <model_traits/CategoryNode.h>
 namespace mumfim
@@ -34,14 +34,14 @@ namespace mumfim
       apf::Field * u,
       I vl_tks,
       O out);
-  class TissueAnalysis
+  class FEMAnalysis
   {
     public:
-    TissueAnalysis(apf::Mesh * mesh,
+    FEMAnalysis(apf::Mesh * mesh,
                    std::unique_ptr<const mt::CategoryNode> cs,
                    MPI_Comm c,
                    const amsi::Analysis & amsi_analysis);
-    virtual ~TissueAnalysis();
+    virtual ~FEMAnalysis();
     virtual void run();
     virtual void checkpoint();
     virtual void finalizeStep();
@@ -58,7 +58,7 @@ namespace mumfim
     int stp;
     int mx_stp;
     int iteration{0};
-    NonlinearTissue * tssu;
+    AnalysisStep * analysis_step_;
     // this is actually a MultiIteration
     amsi::MultiIteration * itr;
     std::vector<amsi::Iteration *> itr_stps;
@@ -80,11 +80,11 @@ namespace mumfim
   class TissueIteration : public amsi::Iteration
   {
     protected:
-    NonlinearTissue * tssu;
+    AnalysisStep * tssu;
     amsi::LAS * las;
 
     public:
-    TissueIteration(NonlinearTissue * t, amsi::LAS * l) : tssu(t), las(l) {}
+    TissueIteration(AnalysisStep * t, amsi::LAS * l) : tssu(t), las(l) {}
     virtual void iterate()
     {
       // Note this is same as FEMLinearIteration
@@ -99,10 +99,10 @@ namespace mumfim
   class TissueCheckpointIteration : public amsi::Iteration
   {
     protected:
-    TissueAnalysis * tssu;
+    FEMAnalysis * tssu;
 
     public:
-    TissueCheckpointIteration(TissueAnalysis * t) : tssu(t) {}
+    TissueCheckpointIteration(FEMAnalysis * t) : tssu(t) {}
     virtual void iterate()
     {
       std::cout << "Checkpointing iteration: " << this->iteration()

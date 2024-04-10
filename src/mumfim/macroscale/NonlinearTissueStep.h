@@ -1,6 +1,6 @@
 #ifndef MUMFIM_NONLINEAR_TISSUE_H_
 #define MUMFIM_NONLINEAR_TISSUE_H_
-#include "LinearTissue.h"
+#include "LinearTissueStep.h"
 #include "StiffnessVariation.h"
 #include "VolumeConstraint.h"
 // micro_fo
@@ -20,11 +20,11 @@
 #include <string>
 #include <vector>
 #include <model_traits/CategoryNode.h>
-#include "TissueBase.h"
+#include "AnalysisStep.h"
 namespace mumfim
 {
   class CurrentCoordFunc;
-  class NonlinearTissue : public TissueBase
+  class NonlinearTissueStep : public AnalysisStep
   {
     protected:
     amsi::XpYFunc * xpyfnc;
@@ -46,9 +46,9 @@ namespace mumfim
     int load_step;
     int iteration;
     public:
-    NonlinearTissue(apf::Mesh* mesh, const mt::CategoryNode& analysis_case,
+    NonlinearTissueStep(apf::Mesh* mesh, const mt::CategoryNode& analysis_case,
                     MPI_Comm cm = AMSI_COMM_SCALE);
-    virtual ~NonlinearTissue();
+    virtual ~NonlinearTissueStep();
     void computeInitGuess(amsi::LAS* las);
     void getLoadOn(apf::ModelEntity* ent, double* frc);
     void step();
@@ -67,7 +67,7 @@ namespace mumfim
     int getIteration() { return iteration; }
     apf::Numbering* getNumbering() { return apf_primary_numbering; }
     //apf::Field* getdUField() { return delta_u; }
-    apf::Field* getUField() { return apf_primary_field; }
+    [[nodiscard]] apf::Field* getUField() final { return apf_primary_field; } 
     apf::Mesh* getMesh() { return apf_mesh; }
     // void logCnstrntParams(int ldstp, int iteration, int rnk);
     // function to get mapping by summing reference coordinate with

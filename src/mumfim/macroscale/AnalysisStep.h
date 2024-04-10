@@ -3,12 +3,13 @@
 #include <apfFEA.h>
 #include <memory>
 #include <unordered_map>
+#include "mumfim/exceptions.h"
 namespace mumfim
 {
-  class TissueBase : public amsi::apfFEA
+  class AnalysisStep : public amsi::apfFEA
   {
     protected:
-    TissueBase(apf::Mesh * mesh,
+    AnalysisStep(apf::Mesh * mesh,
                const mt::CategoryNode & analysis_case,
                std::vector<amsi::DirichletBCEntry> dbc,
                std::vector<amsi::NeumannBCEntry> nbc,
@@ -22,7 +23,7 @@ namespace mumfim
                        cm)
     {
     }
-    TissueBase(apf::Mesh * mesh,
+    AnalysisStep(apf::Mesh * mesh,
                const amsi::ModelDefinition & problem_definition,
                const amsi::ModelDefinition & solution_strategy,
                const amsi::ModelDefinition & output,
@@ -75,6 +76,17 @@ namespace mumfim
       }
       apf_mesh->end(it);
     }
+
+    public:
+    [[nodiscard]] virtual apf::Field * getUField()=0;
+    virtual void preRun (){};
+    virtual void step (){};
+    virtual void iter (){};
+    virtual void AcceptDOFs (){};
+    virtual void recoverSecondaryVariables(int){};
+    virtual void computeInitGuess(amsi::LAS* las){};
+
+
   };
 }  // namespace mumfim
 #endif  // MUMFIM_SRC_MUMFIM_MACROSCALE_MULTISCALETISSUE_CC_TISSUEBASE_H

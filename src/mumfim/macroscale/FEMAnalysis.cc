@@ -1,4 +1,4 @@
-#include "mumfim/macroscale/TissueAnalysis.h"
+#include "mumfim/macroscale/FEMAnalysis.h"
 #include <amsiPETScLAS.h>
 #include <apf.h>
 #include <petscsnes.h>
@@ -11,7 +11,7 @@
 //  throw mumfim::petsc_error(petsc_error_code); }
 namespace mumfim
 {
-  TissueAnalysis::TissueAnalysis(apf::Mesh * mesh,
+  FEMAnalysis::FEMAnalysis(apf::Mesh * mesh,
                                  std::unique_ptr<const mt::CategoryNode> cs,
                                  MPI_Comm c,
                                  const amsi::Analysis & amsi_analysis)
@@ -22,7 +22,7 @@ namespace mumfim
       , dt(0.0)
       , stp(0)
       , mx_stp(1)
-      , tssu(nullptr)
+      , analysis_step_(nullptr)
       , itr()
       , itr_stps()
       , cvg()
@@ -68,7 +68,7 @@ namespace mumfim
                      << "   0,    0, 0.0, init\n";
 #endif
   }
-  void TissueAnalysis::addVolumeTracking(
+  void FEMAnalysis::addVolumeTracking(
       apf::Mesh * mesh,
       const mt::CategoryNode * solution_strategy)
   {
@@ -81,11 +81,11 @@ namespace mumfim
         std::vector<apf::ModelEntity *> model_entities;
         GetModelTraitNodeGeometry(mesh, &tracked_volume, model_entities);
         trkd_vols[tracked_volume.GetName()] = new VolCalc(
-            model_entities.begin(), model_entities.end(), tssu->getUField());
+            model_entities.begin(), model_entities.end(), analysis_step_->getUField());
       }
     }
   }
-  TissueAnalysis::~TissueAnalysis()
+  FEMAnalysis::~FEMAnalysis()
   {
     // since we know all of the iteration steps are allocated on the heap delete
     // them
@@ -103,25 +103,25 @@ namespace mumfim
       (*cvg_stp) = nullptr;
     }
     delete cvg;
-    delete tssu;
+    delete analysis_step_;
     delete las;
 #ifdef LOGRUN
     amsi::deleteLog(state);
 #endif
   }
-  void TissueAnalysis::run()
+  void FEMAnalysis::run()
   {
     try
     {
-      tssu->preRun();  // calls updateMicro for multiscale analysis
-      tssu->recoverSecondaryVariables(stp);
+      analysis_step_->preRun();  // calls updateMicro for multiscale analysis
+      analysis_step_->recoverSecondaryVariables(stp);
       checkpoint();
       // write the initial state of everything
       t += dt;
-      tssu->setSimulationTime(t);
+      analysis_step_->setSimulationTime(t);
       // logVolumes(vol_itms.begin(), vol_itms.end(), vols, stp,
-      // tssu->getUField());
-      tssu->computeInitGuess(las);
+      // analysis_step_->getUField());
+      analysis_step_->computeInitGuess(las);
       completed = false;
       SNES snes(cm);
       MumfimPetscCall(SNESSetFromOptions(snes));
@@ -147,7 +147,7 @@ namespace mumfim
                 // bit hacky...if the last finalized iteration is same as
                 // previous
                 static int num_calls = 0;
-                auto * an = static_cast<TissueAnalysis *>(ctx);
+                auto * an = static_cast<FEMAnalysis *>(ctx);
                 auto * petsc_las = dynamic_cast<amsi::PetscLAS *>(an->las);
                 try
                 {
@@ -173,23 +173,23 @@ namespace mumfim
                   // residuals
                   const double * sol;
                   VecGetArrayRead(displacement, &sol);
-                  an->tssu->UpdateDOFs(sol);
+                  an->analysis_step_->UpdateDOFs(sol);
                   VecRestoreArrayRead(displacement, &sol);
-                  an->tssu->ApplyBC_Dirichlet();
-                  an->tssu->RenumberDOFs();
+                  an->analysis_step_->ApplyBC_Dirichlet();
+                  an->analysis_step_->RenumberDOFs();
                   int gbl, lcl, off;
-                  an->tssu->GetDOFInfo(gbl, lcl, off);
+                  an->analysis_step_->GetDOFInfo(gbl, lcl, off);
                   an->las->Reinitialize(gbl, lcl, off);
                   an->las->Zero();
                   // assembles into Mat/vec
-                  an->tssu->Assemble(an->las);
+                  an->analysis_step_->Assemble(an->las);
                   VecAssemblyBegin(petsc_las->GetVector());
                   VecAssemblyEnd(petsc_las->GetVector());
                   MatAssemblyBegin(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
                   MatAssemblyEnd(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
-                  an->tssu->iter();
+                  an->analysis_step_->iter();
                   VecCopy(petsc_las->GetVector(), residual);
-                  //an->tssu->AcceptDOFs();
+                  //an->analysis_step_->AcceptDOFs();
                 }
                 catch (mumfim_error & e)
                 {
@@ -219,7 +219,7 @@ namespace mumfim
           [](::SNES snes, Vec displacement, Mat Amat, Mat Pmat,
              void * ctx) -> PetscErrorCode
           {
-            auto * an = static_cast<TissueAnalysis *>(ctx);
+            auto * an = static_cast<FEMAnalysis *>(ctx);
             auto * petsc_las = dynamic_cast<amsi::PetscLAS *>(an->las);
             MatCopy(petsc_las->GetMatrix(), Amat, SAME_NONZERO_PATTERN);
             MatScale(Amat, -1);
@@ -232,7 +232,7 @@ namespace mumfim
              PetscReal f, SNESConvergedReason * reason,
              void * ctx) -> PetscErrorCode
           {
-            auto * an = static_cast<TissueAnalysis *>(ctx);
+            auto * an = static_cast<FEMAnalysis *>(ctx);
             auto error =
                 SNESConvergedDefault(snes, it, xnorm, gnorm, f, reason, ctx);
             bool converged =
@@ -242,7 +242,7 @@ namespace mumfim
             // done the microscale knows that a value of 0 means step is
             // accepted but not converged
             an->finalizeIteration(accepted);
-            an->tssu->AcceptDOFs();
+            an->analysis_step_->AcceptDOFs();
             // HACK set this to zero so we don't finalize iteration
             // in form function
             an->iteration = 0;
@@ -297,14 +297,14 @@ namespace mumfim
         std::cout << "checkpointing (macro)" << std::endl;
         std::cout << "Rewriting at end of load step to include orientation data"
                   << std::endl;
-        tssu->recoverSecondaryVariables(stp);
+        analysis_step_->recoverSecondaryVariables(stp);
         checkpoint();
         // reset the iteration from the numerical solve after checkpointing
         // which records iteration information
         itr->reset();
         stp++;
         t += dt;
-        tssu->setSimulationTime(t);
+        analysis_step_->setSimulationTime(t);
         // Warning! this function has a potentially blocking MPI CALL!
         finalizeStep();
       }
@@ -313,7 +313,7 @@ namespace mumfim
     {
       stp = -4;
       // Write out the failed state
-      // tssu->recoverSecondaryVariables(stp);
+      // analysis_step_->recoverSecondaryVariables(stp);
       checkpoint();
       PetscViewer viewer;
       auto * petsc_las = dynamic_cast<amsi::PetscLAS *>(this->las);
@@ -333,9 +333,9 @@ namespace mumfim
       throw;
     }
   }
-  void TissueAnalysis::finalizeStep(){};
-  void TissueAnalysis::finalizeIteration(int){};
-  void TissueAnalysis::checkpoint()
+  void FEMAnalysis::finalizeStep(){};
+  void FEMAnalysis::finalizeIteration(int){};
+  void FEMAnalysis::checkpoint()
   {
 #ifdef LOGRUN
     std::ofstream st_fs(state_fn.c_str(), std::ios::out | std::ios::app);
@@ -352,6 +352,6 @@ namespace mumfim
     cnvrt << iteration;
     apf::writeVtkFiles(
         std::string(amsi::fs->getResultsDir() + "/" + cnvrt.str()).c_str(),
-        tssu->getMesh());
+        analysis_step_->getMesh());
   }
 }  // namespace mumfim

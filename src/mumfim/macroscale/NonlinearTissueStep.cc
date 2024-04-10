@@ -1,4 +1,4 @@
-#include "NonlinearTissue.h"
+#include "NonlinearTissueStep.h"
 
 #include <amsiControlService.h>
 #include <apfFunctions.h>
@@ -17,10 +17,10 @@
 
 namespace mumfim
 {
-  NonlinearTissue::NonlinearTissue(apf::Mesh * mesh,
+  NonlinearTissueStep::NonlinearTissueStep(apf::Mesh * mesh,
                                    const mt::CategoryNode & analysis_case,
                                    MPI_Comm cm)
-      : TissueBase(mesh, analysis_case, {}, {}, "macro", cm)
+      : AnalysisStep(mesh, analysis_case, {}, {}, "macro", cm)
       , constitutives()
       , dv_prev(0.0)
       , load_step(0)
@@ -112,10 +112,10 @@ namespace mumfim
           mt::GetCategoryModelTraitByType<mt::ScalarMT>(continuum_model,
                                                         "poisson ratio");
       // Even pytorch needs a young's modulus, poisson ratio b/c
-      // LinearTissue is used as an initial guess. The initial guess should
+      // LinearTissueStep is used as an initial guess. The initial guess should
       // be based off the same continuum material model as the nonlinear tissue
-      // TODO: LinearTissue uses same continuum material model as
-      // NonlinearTissue
+      // TODO: LinearTissueStep uses same continuum material model as
+      // NonlinearTissueStep
       std::cout << "continuum model type: " << continuum_model->GetType()
                 << "\n";
       if ((youngs_modulus == nullptr || poisson_ratio == nullptr))
@@ -183,7 +183,7 @@ namespace mumfim
                              .mt_type = amsi::NeumannBCType::traction});
   }
 
-  NonlinearTissue::~NonlinearTissue()
+  NonlinearTissueStep::~NonlinearTissueStep()
   {
     delete xpyfnc;
     apf::destroyField(current_coords);
@@ -199,19 +199,19 @@ namespace mumfim
     apf::destroyField(axl_yngs_mod);
   }
 
-  void NonlinearTissue::computeInitGuess(amsi::LAS * las)
+  void NonlinearTissueStep::computeInitGuess(amsi::LAS * las)
   {
-    // LinearTissue lt(model, mesh, prob_def, solution_strategy, analysis_comm);
-    LinearTissue lt(apf_mesh, problem_definition, solution_strategy, output,
+    // LinearTissueStep lt(model, mesh, prob_def, solution_strategy, analysis_comm);
+    LinearTissueStep lt(apf_mesh, problem_definition, solution_strategy, output,
                     analysis_comm);
     lt.setSimulationTime(T);
     LinearSolver(&lt, las);
     las->iter();
-    apf::copyData(delta_u, lt.getField());
-    apf::copyData(apf_primary_field, lt.getField());
+    apf::copyData(delta_u, lt.getUField());
+    apf::copyData(apf_primary_field, lt.getUField());
   }
 
-  void NonlinearTissue::step()
+  void NonlinearTissueStep::step()
   {
     for (auto cnst = vol_cnst.begin(); cnst != vol_cnst.end(); cnst++)
       (*cnst)->step();
@@ -219,14 +219,14 @@ namespace mumfim
     load_step++;
   }
 
-  void NonlinearTissue::iter()
+  void NonlinearTissueStep::iter()
   {
     for (auto cnst = vol_cnst.begin(); cnst != vol_cnst.end(); cnst++)
       (*cnst)->iter();
     iteration++;
   }
 
-  void NonlinearTissue::Assemble(amsi::LAS * las)
+  void NonlinearTissueStep::Assemble(amsi::LAS * las)
   {
     ApplyBC_Neumann(las);
     // custom iterator would be perfect for switching for multiscale version
@@ -246,7 +246,7 @@ namespace mumfim
     // las->GetVectorNorm(nrm);
   }
 
-  void NonlinearTissue::UpdateDOFs(const double * sol)
+  void NonlinearTissueStep::UpdateDOFs(const double * sol)
   {
     // rewrite for SNES. Here the solution vector we have is the
     // full displacements
@@ -280,7 +280,7 @@ namespace mumfim
    * @param ent model entity to query
    * @param frc will be filled with the value of the NeumannBCs
    */
-  void NonlinearTissue::getLoadOn(apf::ModelEntity * ent, double * frc)
+  void NonlinearTissueStep::getLoadOn(apf::ModelEntity * ent, double * frc)
   {
     auto model_dimension = apf_mesh->getModelType(ent);
     auto model_tag = apf_mesh->getModelTag(ent);
@@ -337,7 +337,7 @@ namespace mumfim
     }
   }
 
-  void NonlinearTissue::recoverSecondaryVariables(int /* unused load_step */)
+  void NonlinearTissueStep::recoverSecondaryVariables(int /* unused load_step */)
   {
     /*
     //#ifdef SCOREC
@@ -355,7 +355,7 @@ namespace mumfim
     // #endif
   }
 
-  void NonlinearTissue::storeStrain(apf::MeshElement * me, double * strain)
+  void NonlinearTissueStep::storeStrain(apf::MeshElement * me, double * strain)
   {
     apf::MeshEntity * m_ent = apf::getMeshEntity(me);
     apf::Matrix3x3 eps(strain[0], strain[3], strain[5], strain[3], strain[1],
@@ -363,13 +363,13 @@ namespace mumfim
     apf::setMatrix(strn, m_ent, 0, eps);
   }
 
-  void NonlinearTissue::storeStrain(apf::MeshElement * me, apf::Matrix3x3 eps)
+  void NonlinearTissueStep::storeStrain(apf::MeshElement * me, apf::Matrix3x3 eps)
   {
     apf::MeshEntity * m_ent = apf::getMeshEntity(me);
     apf::setMatrix(strn, m_ent, 0, eps);
   }
 
-  void NonlinearTissue::storeStress(apf::MeshElement * me, double * stress)
+  void NonlinearTissueStep::storeStress(apf::MeshElement * me, double * stress)
   {
     apf::MeshEntity * m_ent = apf::getMeshEntity(me);
     apf::Matrix3x3 sigma(stress[0], stress[3], stress[5], stress[3], stress[1],
@@ -377,7 +377,7 @@ namespace mumfim
     apf::setMatrix(strs, m_ent, 0, sigma);
   }
 
-  void NonlinearTissue::storeStress(apf::MeshElement * me, apf::Matrix3x3 eps)
+  void NonlinearTissueStep::storeStress(apf::MeshElement * me, apf::Matrix3x3 eps)
   {
     apf::MeshEntity * m_ent = apf::getMeshEntity(me);
     apf::setMatrix(strs, m_ent, 0, eps);

@@ -1,7 +1,7 @@
 #ifndef MUMFIM_VOLUME_CONVERGENCE_H_
 #define MUMFIM_VOLUME_CONVERGENCE_H_
 #include <apfMeasure.h>
-#include "NonlinearTissue.h"
+#include "NonlinearTissueStep.h"
 namespace mumfim
 {
   class VolCalc : public amsi::Iteration, public amsi::PerStep

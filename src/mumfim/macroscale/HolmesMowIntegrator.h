@@ -1,6 +1,6 @@
 #ifndef MUMFIM_HOLMESMOW_INTEGRATOR_H_
 #define MUMFIM_HOLMESMOW_INTEGRATOR_H_
-#include "NonlinearTissue.h"
+#include "NonlinearTissueStep.h"
 #include <ElementalSystem.h>
 #include <apfShape.h>
 #include <cstring>
@@ -12,7 +12,7 @@ namespace mumfim
   class HolmesMowIntegrator : public amsi::ElementalSystem
   {
   public:
-  HolmesMowIntegrator(NonlinearTissue * n,
+  HolmesMowIntegrator(NonlinearTissueStep * n,
                       apf::Field * field,
                       double shear_modulus,
                       double poisson_ratio,
@@ -296,7 +296,7 @@ namespace mumfim
     }
     int current_integration_point;
   private:
-    NonlinearTissue * analysis;
+    NonlinearTissueStep * analysis;
     int dim;
     apf::FieldShape * fs;
     apf::EntityShape * es;

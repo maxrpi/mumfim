@@ -1,10 +1,10 @@
 #ifndef MUMFIM_SINGLESCALETISSUEANALYSIS_H
 #define MUMFIM_SINGLESCALETISSUEANALYSIS_H
-#include "TissueAnalysis.h"
+#include "FEMAnalysis.h"
 
 namespace mumfim
 {
-  class SinglescaleTissueAnalysis : public TissueAnalysis
+  class SinglescaleTissueAnalysis : public FEMAnalysis
   {
     public:
     SinglescaleTissueAnalysis(apf::Mesh * mesh,
