@@ -33,7 +33,7 @@ target_link_libraries(biotissue
         PUBLIC
         micro_fo
         amsi::util
-        amsi::analysis
+        mumfim::analysis
         amsi::multiscale
         amsi::amsi)
 
@@ -47,4 +47,4 @@ target_include_directories(biotissue PUBLIC
         "$<INSTALL_INTERFACE:include>")
 
 target_compile_features(biotissue PUBLIC cxx_std_17)
-install(TARGETS biotissue DESTINATION lib)
+#install(TARGETS biotissue DESTINATION lib)

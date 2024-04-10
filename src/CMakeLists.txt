@@ -1,3 +1,4 @@
+add_subdirectory(mumfim/analysis)
 add_subdirectory(mumfim/macroscale)
 add_subdirectory(mumfim/microscale)
 

@@ -1,0 +1,8 @@
+<header>
+4
+87 file:///fasttmp/wtobin/develop/amsi/test/test_interface/meshes/cube_24_tets_2_parts.sms10 pmesh.full6 # 1 0 0 
+0
+1
+5 model4
+33 ../models/cube_uniaxial_10kPa.smd27 model.nonmanifold.parasolid6 # 1 0 0 
+</header>

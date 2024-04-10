@@ -1,0 +1,858 @@
+smi 5 0
+<part> smd 19
+simple 19 1
+*
+-1
+-1 -1 0
+1 1 2
+1 1007 9 0
+0 0 -1 -1 0
+1 1 2
+_sim_empty
+-1
+0 0 0 0
+
+0
+1 6 12 8
+0 0 0 0
+6
+2 4 23
+9 4 23
+23 0 9 0 200 0 2
+2 9 
+_sim_empty
+-1
+-1 -1 2
+-1 -1 2
+8 4 21
+11 4 21
+21 0 9 0 200 0 2
+8 11 
+_sim_empty
+-1
+-1 1 2
+-1 1 2
+6 4 19
+13 4 19
+19 0 9 0 200 0 2
+6 13 
+_sim_empty
+-1
+1 1 2
+1 1 2
+4 4 17
+15 4 17
+17 0 9 0 200 0 2
+4 15 
+_sim_empty
+-1
+1 -1 2
+1 -1 2
+55 4 15
+59 4 15
+15 0 9 0 200 0 2
+55 59 
+_sim_empty
+-1
+1 1 0
+1 1 0
+39 4 13
+43 4 13
+13 0 9 0 200 0 2
+39 43 
+_sim_empty
+-1
+-1 1 0
+-1 1 0
+23 4 11
+27 4 11
+11 0 9 0 200 0 2
+23 27 
+_sim_empty
+-1
+-1 -1 0
+-1 -1 0
+17 4 10
+26 4 10
+10 0 9 0 200 0 2
+17 26 
+_sim_empty
+-1
+1 -1 0
+1 -1 0
+1 5 34 4 2 
+8 5 34 15 9 
+34 1 9 0 210 0 2 17 23
+1 8 
+_sim_empty
+-1
+1 0.5 0 -1 2
+1 1
+4 4 0 1e-08
+1 -1 2
+0.33333333333333331 -1 2
+-0.33333333333333331 -1 2
+-1 -1 2
+0 0 0 0 1 1 1 1 
+4 5 31 2 8 
+5 5 31 9 11 
+31 1 9 0 210 0 2 23 21
+4 5 
+_sim_empty
+-1
+1 0.5 -1 0 2
+1 1
+4 4 0 1e-08
+-1 -1 2
+-1 -0.33333333333333331 2
+-1 0.33333333333333331 2
+-1 1 2
+0 0 0 0 1 1 1 1 
+3 5 28 8 6 
+6 5 28 11 13 
+28 1 9 0 210 0 2 21 19
+3 6 
+_sim_empty
+-1
+1 0.5 0 1 2
+1 1
+4 4 0 1e-08
+-1 1 2
+-0.33333333333333331 1 2
+0.33333333333333331 1 2
+1 1 2
+0 0 0 0 1 1 1 1 
+2 5 25 6 4 
+7 5 25 13 15 
+25 1 9 0 210 0 2 19 17
+2 7 
+_sim_empty
+-1
+1 0.5 1 0 2
+1 1
+4 4 0 1e-08
+1 1 2
+1 0.33333333333333331 2
+1 -0.33333333333333331 2
+1 -1 2
+0 0 0 0 1 1 1 1 
+11 5 24 23 2 
+14 5 24 27 9 
+24 1 9 0 210 0 2 11 23
+11 14 
+_sim_empty
+-1
+1 0.5 -1 -1 1
+1 1
+4 4 0 1e-08
+-1 -1 0
+-1 -1 0.66666666666666663
+-1 -1 1.3333333333333333
+-1 -1 2
+0 0 0 0 1 1 1 1 
+19 5 22 39 8 
+22 5 22 43 11 
+22 1 9 0 210 0 2 13 21
+19 22 
+_sim_empty
+-1
+1 0.5 -1 1 1
+1 1
+4 4 0 1e-08
+-1 1 0
+-1 1 0.66666666666666663
+-1 1 1.3333333333333333
+-1 1 2
+0 0 0 0 1 1 1 1 
+27 5 20 55 6 
+30 5 20 59 13 
+20 1 9 0 210 0 2 15 19
+27 30 
+_sim_empty
+-1
+1 0.5 1 1 1
+1 1
+4 4 0 1e-08
+1 1 0
+1 1 0.66666666666666663
+1 1 1.3333333333333333
+1 1 2
+0 0 0 0 1 1 1 1 
+9 5 18 17 4 
+16 5 18 26 15 
+18 1 9 0 210 0 2 10 17
+9 16 
+_sim_empty
+-1
+1 0.5 1 -1 1
+1 1
+4 4 0 1e-08
+1 -1 0
+1 -1 0.66666666666666663
+1 -1 1.3333333333333333
+1 -1 2
+0 0 0 0 1 1 1 1 
+33 5 6 17 55 
+40 5 6 26 59 
+6 1 9 0 210 0 2 10 15
+33 40 
+_sim_empty
+-1
+1 0.5 1 0 0
+1 1
+4 4 0 1e-08
+1 -1 0
+1 -0.33333333333333331 0
+1 0.33333333333333331 0
+1 1 0
+0 0 0 0 1 1 1 1 
+28 5 16 55 39 
+29 5 16 59 43 
+16 1 9 0 210 0 2 15 13
+28 29 
+_sim_empty
+-1
+1 0.5 0 1 0
+1 1
+4 4 0 1e-08
+1 1 0
+0.33333333333333331 1 0
+-0.33333333333333331 1 0
+-1 1 0
+0 0 0 0 1 1 1 1 
+20 5 14 39 23 
+21 5 14 43 27 
+14 1 9 0 210 0 2 13 11
+20 21 
+_sim_empty
+-1
+1 0.5 -1 0 0
+1 1
+4 4 0 1e-08
+-1 1 0
+-1 0.33333333333333331 0
+-1 -0.33333333333333331 0
+-1 -1 0
+0 0 0 0 1 1 1 1 
+12 5 12 23 17 
+13 5 12 27 26 
+12 1 9 0 210 0 2 11 10
+12 13 
+_sim_empty
+-1
+1 0.5 0 -1 0
+1 1
+4 4 0 1e-08
+-1 -1 0
+-0.33333333333333331 -1 0
+0.33333333333333331 -1 0
+1 -1 0
+0 0 0 0 1 1 1 1 
+1 6 36 1 0 2
+4 34 1 0 25 2 0 28 3 0 31 4 0 2 6 36 0 0 1
+4 31 5 1 28 6 1 25 7 1 34 8 1 36 2 9 0 203 0
+1 1 
+
+  1 2 
+
+0
+_sim_empty
+-1
+0 0 0 0 0 0
+0
+1 1
+2 2 2 2 0 0 0 1e-08
+ -1 -1 2 -1 1 2
+ 1 -1 2 1 1 2
+ 0 0 1 1
+ 0 0 1 1
+3 6 33 1 0 4
+4 18 9 1 34 1 1 24 11 0 12 12 1 4 6 33 0 0 3
+4 12 13 0 24 14 1 34 8 0 18 16 0 33 2 9 0 203 0
+1 3 
+
+  1 4 
+
+0
+_sim_empty
+-1
+0 0 0 0 0 0
+0
+1 1
+2 2 2 2 0 0 0 1e-08
+ -1 -1 2 1 -1 2
+ -1 -1 0 1 -1 0
+ 0 0 1 1
+ 0 0 1 1
+5 6 30 1 0 6
+4 24 11 1 31 4 1 22 19 0 14 20 1 6 6 30 0 0 5
+4 14 21 0 22 22 1 31 5 0 24 14 0 30 2 9 0 203 0
+1 5 
+
+  1 6 
+
+0
+_sim_empty
+-1
+0 0 0 0 0 0
+0
+1 1
+2 2 2 2 0 0 0 1e-08
+ -1 -1 0 -1 1 0
+ -1 -1 2 -1 1 2
+ 0 0 1 1
+ 0 0 1 1
+7 6 27 1 0 8
+4 22 19 1 28 3 1 20 27 0 16 28 1 8 6 27 0 0 7
+4 16 29 0 20 30 1 28 6 0 22 22 0 27 2 9 0 203 0
+1 7 
+
+  1 8 
+
+0
+_sim_empty
+-1
+0 0 0 0 0 0
+0
+1 1
+2 2 2 2 0 0 0 1e-08
+ -1 1 0 1 1 0
+ -1 1 2 1 1 2
+ 0 0 1 1
+ 0 0 1 1
+9 6 9 1 0 10
+4 6 33 0 12 12 0 14 20 0 16 28 0 10 6 9 0 0 9
+4 16 29 1 14 21 1 12 13 1 6 40 1 9 2 9 0 203 0
+1 9 
+
+  1 10 
+
+0
+_sim_empty
+-1
+0 0 0 0 0 0
+0
+1 1
+2 2 2 2 0 0 0 1e-08
+ 1 -1 0 1 1 0
+ -1 -1 0 -1 1 0
+ 0 0 1 1
+ 0 0 1 1
+11 6 2 1 0 12
+4 6 33 1 20 27 1 25 2 1 18 9 0 12 6 2 0 0 11
+4 18 16 1 25 7 0 20 30 0 6 40 0 2 2 9 0 203 0
+1 11 
+
+  1 12 
+
+0
+_sim_empty
+-1
+0 0 0 0 0 0
+0
+1 1
+2 2 2 2 0 0 0 1e-08
+ 1 -1 2 1 1 2
+ 1 -1 0 1 1 0
+ 0 0 1 1
+ 0 0 1 1
+1 8 5 6
+36 0 33 0 30 0 27 0 9 0 2 0 5 3 9 0 205 0 1 
+1 
+0
+0
+_sim_empty
+-1
+0 -1
+3 8 6 6
+36 1 30 1 9 1 27 1 2 1 33 1 6 3 8 0 303 0 1 
+3 
+0
+0
+_sim_empty
+-1
+0
+0 -1
+0 -1
+0 -1
+<part> auxmm 3
+0
+0
+<part> attributes 10
+AttDBVersion 10 8
+0 7 0 39 180
+1 6 176
+0 
+9 direction
+0 
+0 0 1
+0
+0
+1 3 0
+7 3
+0 
+2
+2 -1
+0 
+8 10000*$t
+2 -1
+0 
+1 0
+2 -1
+0 
+1 0
+1 7 175
+0 
+8 traction
+0 
+0 0 1
+0
+1 176
+1 10 147
+1 *
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+81 file:///fasttmp/wtobin/develop/amsi/test/interface/models/cube_uniaxial_10kPa.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 2 174
+0 
+19 output displacement
+0 
+0 0 1
+0
+0
+1 1
+0 
+1
+1 10 94
+1 *
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+104 file:///fasttmp/wtobin/develop/amsi/test/test_interface/linear_elasticity/models/cube_uniaxial_10kPa.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 10 71
+1 *
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+77 file:///users/wtobin/develop/biotissue_amsi/macro/test/SimpleCube/cube_bc.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 10 152
+1 *
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+79 file:///lore/mersoj/biotissue/amsi/test/analysis/models/cube_uniaxial_10kPa.smd24 model.nonmanifold.simple6 # 1 0 0 1 10 179
+0 
+6 simple
+0 
+0 0 1
+0
+0
+1
+4
+79 file:///lore/mersoj/biotissue/amsi/test/analysis/models/cube_uniaxial_10kPa.smd24 model.nonmanifold.simple6 # 1 0 0 1 10 177
+0 
+6 simple
+0 
+0 0 1
+0
+0
+1
+4
+79 file:///lore/mersoj/biotissue/amsi/test/analysis/models/cube_uniaxial_10kPa.smd24 model.nonmanifold.simple6 # 1 0 0 1 6 172
+0 
+9 direction
+0 
+0 0 1
+0
+0
+1 3 0
+7 3
+0 
+2
+2 -1
+0 
+8 10000*$t
+2 -1
+0 
+1 0
+2 -1
+0 
+1 0
+1 6 156
+0 
+14 youngs modulus
+0 
+0 0 1
+0
+0
+0 1 0
+2 -1
+0 
+7 10000.0
+1 10 69
+1 *
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+77 file:///users/wtobin/develop/biotissue_amsi/macro/test/SimpleCube/cube_bc.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 6 166
+0 
+1 x
+0 
+0 0 1
+0
+0
+0 3 0
+2 -1
+0 
+3 0.0
+1 10 95
+1 *
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+104 file:///fasttmp/wtobin/develop/amsi/test/test_interface/linear_elasticity/models/cube_uniaxial_10kPa.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 2 173
+0 
+12 output force
+0 
+0 0 1
+0
+0
+1 1
+0 
+1
+1 10 70
+1 *
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+77 file:///users/wtobin/develop/biotissue_amsi/macro/test/SimpleCube/cube_bc.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 10 11
+0 
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+81 file:///fasttmp/wtobin/develop/amsi/test/interface/models/cube_uniaxial_10kPa.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 6 168
+0 
+1 y
+0 
+0 0 1
+0
+0
+0 3 0
+2 -1
+0 
+3 0.0
+1 10 151
+1 *
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+79 file:///lore/mersoj/biotissue/amsi/test/analysis/models/cube_uniaxial_10kPa.smd24 model.nonmanifold.simple6 # 1 0 0 1 10 153
+1 *
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+79 file:///lore/mersoj/biotissue/amsi/test/analysis/models/cube_uniaxial_10kPa.smd24 model.nonmanifold.simple6 # 1 0 0 1 7 167
+0 
+12 displacement
+0 
+0 0 1
+0
+1 168
+1 10 12
+0 
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+81 file:///fasttmp/wtobin/develop/amsi/test/interface/models/cube_uniaxial_10kPa.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 6 157
+0 
+13 poisson ratio
+0 
+0 0 1
+0
+0
+0 1 0
+2 -1
+0 
+3 0.3
+1 7 155
+0 
+15 continuum model
+24 isotropic linear elastic
+0 0 1
+0
+2 156 157
+1 2 159
+0 
+17 structural member
+0 
+0 0 1
+0
+0
+1 1
+0 
+0
+1 2 160
+0 
+14 force reaction
+0 
+0 0 1
+0
+0
+1 1
+0 
+0
+1 6 161
+0 
+6 radius
+0 
+0 0 1
+0
+0
+0 3 0
+2 1
+0 
+3.4991099999999998e-08
+1 6 162
+0 
+15 volume fraction
+0 
+0 0 1
+0
+0
+0 1 0
+2 1
+0 
+0.0030000000000000001
+1 7 158
+0 
+16 multiscale model
+0 
+0 0 1
+0
+4 159 160 161 162
+1 7 154
+0 
+14 material model
+0 
+0 0 1
+0
+2 155 158
+1 6 170
+0 
+1 z
+0 
+0 0 1
+0
+0
+0 3 0
+2 -1
+0 
+3 0.0
+1 7 165
+0 
+12 displacement
+0 
+0 0 1
+0
+1 166
+1 10 178
+0 
+6 simple
+0 
+0 0 1
+0
+0
+1
+4
+79 file:///lore/mersoj/biotissue/amsi/test/analysis/models/cube_uniaxial_10kPa.smd24 model.nonmanifold.simple6 # 1 0 0 1 10 10
+0 
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+81 file:///fasttmp/wtobin/develop/amsi/test/interface/models/cube_uniaxial_10kPa.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 7 171
+0 
+16 surface traction
+0 
+0 0 1
+0
+1 172
+1 10 6
+0 
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+81 file:///fasttmp/wtobin/develop/amsi/test/interface/models/cube_uniaxial_10kPa.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 7 169
+0 
+12 displacement
+0 
+0 0 1
+0
+1 170
+1 10 93
+1 *
+9 parasolid
+0 
+0 0 1
+0
+0
+1
+4
+104 file:///fasttmp/wtobin/develop/amsi/test/test_interface/linear_elasticity/models/cube_uniaxial_10kPa.smd27 model.nonmanifold.parasolid6 # 1 0 0 1 10 180
+0 
+6 simple
+0 
+0 0 1
+0
+0
+1
+4
+79 file:///lore/mersoj/biotissue/amsi/test/analysis/models/cube_uniaxial_10kPa.smd24 model.nonmanifold.simple6 # 1 0 0 3 1 2
+14 Volume Meshing
+8 MeshProc
+0 
+0 0 1
+0
+0
+177
+0 0
+3 1 3
+15 Surface Meshing
+8 MeshProc
+0 
+0 0 1
+0
+0
+178
+0 0
+3 1 4
+23 Volume Meshing (Curved)
+8 MeshProc
+0 
+0 0 1
+0
+0
+179
+0 0
+3 1 5
+24 Surface Meshing (Curved)
+8 MeshProc
+0 
+0 0 1
+0
+0
+180
+0 0
+3 1 149
+0 
+18 problem definition
+5 macro
+0 0 1
+0
+6 154 165 167 169 171 175
+152
+6 7
+1
+1
+3 5  1 154
+3
+1
+2 30  1 165
+4
+1
+2 33  1 167
+5
+1
+2 9  1 169
+6
+1
+2 2  1 171
+7
+1
+2 2  1 175
+3 1 150
+0 
+6 output
+5 macro
+0 0 1
+0
+2 173 174
+153
+2 2
+1
+1
+2 2  1 173
+2
+1
+2 2  1 174
+3 1 148
+14 10kPa_uniaxial
+8 analysis
+5 macro
+1 0 1
+0
+2 149 150
+151
+0 0
+<index>
+3
+smd 8
+auxmm 4325
+attributes 4344
+</index>
+<header>
+4
+79 file:///lore/mersoj/biotissue/amsi/test/analysis/models/cube_uniaxial_10kPa.smd24 model.nonmanifold.simple6 # 1 0 0 
+0
+0
+</header>
+9173 9225                                                                                                                      

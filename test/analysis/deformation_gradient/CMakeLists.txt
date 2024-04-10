@@ -1,0 +1,2 @@
+add_mpi_test(deformationGradient deformationGradient.cc 1)
+target_link_libraries(deformationGradient analysis)

@@ -1,0 +1,126 @@
+Attempting to read required command-line parameters: 
+Command-line parameters successfully parsed, initializing 3rd party libraries:
+3rd-party libraries initialized, reading simulation input files:
+Input files loaded, initializing analysis: 
+Analysis objects created, commencing analysis: 
+There are 15 dofs fixed by essential boundary conditions.
+Local equations = 27, Global Equations = 27
+Vector ownership range: 0-27
+Matrix ownership range: 0-27
+(Re)initialized the matrix, vectors and the solver
+Linear solve converged due to CONVERGED_ITS iterations 1
+KSP Object: 1 MPI processes
+  type: preonly
+  maximum iterations=10000, initial guess is zero
+  tolerances:  relative=1e-05, absolute=1e-50, divergence=10000
+  left preconditioning
+  using NONE norm type for convergence test
+PC Object: 1 MPI processes
+  type: lu
+    LU: out-of-place factorization
+    tolerance for zero pivot 2.22045e-14
+    matrix ordering: nd
+    factor fill ratio given 0, needed 0
+      Factored matrix follows:
+        Mat Object:         1 MPI processes
+          type: seqaij
+          rows=27, cols=27
+          package used to perform factorization: superlu_dist
+          total: nonzeros=0, allocated nonzeros=0
+          total number of mallocs used during MatSetValues calls =0
+            SuperLU_DIST run parameters:
+              Process grid nprow 1 x npcol 1 
+              Equilibrate matrix TRUE 
+              Matrix input mode 0 
+              Replace tiny pivots TRUE 
+              Use iterative refinement FALSE 
+              Processors in row 1 col partition 1 
+              Row permutation LargeDiag 
+              Column permutation METIS_AT_PLUS_A
+              Parallel symbolic factorization FALSE 
+              Repeated factorization SamePattern_SameRowPerm
+  linear system matrix = precond matrix:
+  Mat Object:   1 MPI processes
+    type: seqaij
+    rows=27, cols=27
+    total: nonzeros=477, allocated nonzeros=8100
+    total number of mallocs used during MatSetValues calls =0
+      using I-node routines: found 13 nodes, limit used is 5
+Analysis complete, writing results file(s):
+writeVtuFile into buffers: 0.000107 seconds
+writeVtuFile buffers to disk: 0.001587 seconds
+vtk files isotropic_linear_elastic_result written in 0.003307 seconds
+Results file(s) written, shutting down 3rd-party libs
+#PETSc Option Table entries:
+-g /fasttmp/wtobin/develop/amsi/test/interface//models/cube_uniaxial_10kPa.smd
+-ksp_converged_reason
+-ksp_type preonly
+-ksp_view
+-m /fasttmp/wtobin/develop/amsi/test/interface//meshes/cube_24_tets.sms
+-malloc_log
+-options_left
+-options_table
+-pc_factor_mat_solver_package superlu_dist
+-pc_type lu
+-with-precision=double
+-with-scalar-type=real
+-xhelp
+-xtrdump
+#End of PETSc Option Table entries
+There are 7 unused database options. They are:
+Option left: name:-g value: /fasttmp/wtobin/develop/amsi/test/interface//models/cube_uniaxial_10kPa.smd
+Option left: name:-m value: /fasttmp/wtobin/develop/amsi/test/interface//meshes/cube_24_tets.sms
+Option left: name:-options_table (no value)
+Option left: name:-with-precision=double (no value)
+Option left: name:-with-scalar-type=real (no value)
+Option left: name:-xhelp (no value)
+Option left: name:-xtrdump (no value)
+[0] Maximum memory PetscMalloc()ed 177552 maximum size of entire process 15081472
+[0] Memory usage sorted by function
+[0] 2 3216 ClassPerfLogCreate()
+[0] 2 9616 EventPerfLogCreate()
+[0] 1 19200 EventPerfLogEnsureSize()
+[0] 2 1616 EventRegLogCreate()
+[0] 1 3200 EventRegLogRegister()
+[0] 4 3072 ISCreate()
+[0] 4 64 ISCreate_General()
+[0] 4 352 ISGeneralSetIndices_General()
+[0] 4 352 ISSetPermutation()
+[0] 1 16 KSPConvergedDefaultCreate()
+[0] 1 1152 KSPCreate()
+[0] 2 4608 MatCreate()
+[0] 2 768 MatCreate_SeqAIJ()
+[0] 1 448 MatGetFactor_aij_superlu_dist()
+[0] 4 256 MatGetOrdering_ND()
+[0] 5 720 MatGetRowIJ_SeqAIJ_Inode_Symmetric()
+[0] 3 288 MatInodeAdjustForInodes_SeqAIJ_Inode()
+[0] 1 112 MatMarkDiagonal_SeqAIJ()
+[0] 8 256 MatRegisterBaseName()
+[0] 1 112 MatSeqAIJCheckInode()
+[0] 8 97872 MatSeqAIJSetPreallocation_SeqAIJ()
+[0] 16 688 MatSolverPackageRegister()
+[0] 1 112 Mat_CreateColInode()
+[0] 1 816 PCCreate()
+[0] 1 176 PCCreate_LU()
+[0] 2 1616 PetscClassRegLogCreate()
+[0] 2 32 PetscCommDuplicate()
+[0] 199 6368 PetscFunctionListAdd_Private()
+[0] 2 528 PetscIntStackCreate()
+[0] 15 960 PetscLayoutCreate()
+[0] 9 144 PetscLayoutSetUp()
+[0] 4 64 PetscMaxSum()
+[0] 4 320 PetscObjectComposedDataIncreaseReal()
+[0] 5 128 PetscOptionsGetEList()
+[0] 1 32 PetscPushSignalHandler()
+[0] 2 10048 PetscSegBufferCreate()
+[0] 2 1328 PetscStageLogCreate()
+[0] 462 9360 PetscStrallocpy()
+[0] 1 16 PetscViewerASCIIOpen()
+[0] 2 1376 PetscViewerCreate()
+[0] 2 160 PetscViewerCreate_ASCII()
+[0] 1 16 VecAssemblyBegin_MPI()
+[0] 7 10528 VecCreate()
+[0] 14 2240 VecCreate_MPI_Private()
+[0] 14 224 VecStashCreate_Private()
+[0] 8 128 VecStashScatterBegin_Private()
+3rd-party libraries shut down, exiting analysis..
