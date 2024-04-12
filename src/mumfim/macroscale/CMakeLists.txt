@@ -1,7 +1,7 @@
 set(biotissue_src_files
         Analysis.cc
         LinearTissueStep.cc
-        MultiscaleTissue.cc
+        MultiscaleTissueStep.cc
         ModelTraits.cc
         NonlinearTissueStep.cc
         ReadStochasticField.cc

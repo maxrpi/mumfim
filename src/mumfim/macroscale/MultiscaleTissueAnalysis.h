@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include "LinearTissueStep.h"
-#include "MultiscaleTissue.h"
+#include "MultiscaleTissueStep.h"
 #include "FEMAnalysis.h"
 #include "VolumeConvergence.h"
 namespace mumfim
@@ -16,12 +16,12 @@ namespace mumfim
   class MultiscaleTissueIteration : public amsi::Iteration
   {
     protected:
-    MultiscaleTissue * tssu;
+    MultiscaleTissueStep * tssu;
     amsi::LAS * las;
     Iteration * fem_iter;
 
     public:
-    MultiscaleTissueIteration(MultiscaleTissue * a, amsi::LAS * l)
+    MultiscaleTissueIteration(MultiscaleTissueStep * a, amsi::LAS * l)
         : tssu(a), las(l), fem_iter(amsi::buildLinearFEMIteration(a, l))
     {
     }

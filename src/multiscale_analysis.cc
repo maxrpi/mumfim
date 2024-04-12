@@ -12,7 +12,7 @@
 #include "amsi.h"
 #include "amsiExceptions.h"
 #include "mumfim/exceptions.h"
-#include "mumfim/macroscale/MultiscaleTissue.h"
+#include "mumfim/macroscale/MultiscaleTissueStep.h"
 #include "mumfim/macroscale/MultiscaleTissueAnalysis.h"
 #if not defined(__APPLE__)
 #include <cfenv>

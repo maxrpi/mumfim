@@ -1,4 +1,4 @@
-#include "MultiscaleTissue.h"
+#include "MultiscaleTissueStep.h"
 #include <amsiControlService.h>  // amsi
 #include <amsiDetectOscillation.h>
 #include <model_traits/AssociatedModelTraits.h>
@@ -71,7 +71,7 @@ namespace mumfim
         .alignment_filename = (*alignment_filename)(),
     };
   }
-  MultiscaleTissue::MultiscaleTissue(apf::Mesh * mesh,
+  MultiscaleTissueStep::MultiscaleTissueStep(apf::Mesh * mesh,
                                      const mt::CategoryNode & analysis_case,
                                      MPI_Comm cm,
                                      const amsi::Multiscale & amsi_multiscale)
@@ -154,7 +154,7 @@ namespace mumfim
       }
     }
   }
-  MultiscaleTissue::~MultiscaleTissue()
+  MultiscaleTissueStep::~MultiscaleTissueStep()
   {
     delete mltscl;
     // destroying these fields causes segfult...needs investigation
@@ -163,7 +163,7 @@ namespace mumfim
     apf::destroyField(ornt_3D);
     apf::destroyField(ornt_2D);
   }
-  void MultiscaleTissue::Assemble(amsi::LAS * las)
+  void MultiscaleTissueStep::Assemble(amsi::LAS * las)
   {
     computeRVEs();
 #ifdef LOGRUN
@@ -190,7 +190,7 @@ namespace mumfim
                      << "start_solve" << std::endl;
 #endif
   }
-  void MultiscaleTissue::computeRVEs()
+  void MultiscaleTissueStep::computeRVEs()
   {
 #ifdef LOGRUN
     amsi::Log state = amsi::activateLog("tissue_efficiency");
@@ -209,7 +209,7 @@ namespace mumfim
                      << "end_rves" << std::endl;
 #endif
   }
-  void MultiscaleTissue::initMicro()
+  void MultiscaleTissueStep::initMicro()
   {
     amsi::ControlService * cs = amsi::ControlService::Instance();
     fo_cplg.initCoupling();
@@ -231,12 +231,12 @@ namespace mumfim
     // a crash on systems without hardware MPI buffers
     MPI_Waitall(rqsts.size(), &rqsts[0], MPI_STATUSES_IGNORE);
   }
-  void MultiscaleTissue::updateMicro()
+  void MultiscaleTissueStep::updateMicro()
   {
     updateRVETypes();
     updateRVEExistence();
   }
-  void MultiscaleTissue::updateRVETypes()
+  void MultiscaleTissueStep::updateRVETypes()
   {
     nm_rves = 0;
     apf::MeshIterator * it = apf_mesh->begin(analysis_dim);
@@ -255,7 +255,7 @@ namespace mumfim
     }
     apf_mesh->end(it);
   }
-  MicroscaleType MultiscaleTissue::updateRVEType(apf::MeshEntity * me)
+  MicroscaleType MultiscaleTissueStep::updateRVEType(apf::MeshEntity * me)
   {
     // TODO: Use error estimate as determination of microscale TYPE
     // apf::MeshElement * me = apf::createMeshElement(apf_mesh,m_ent);
@@ -274,7 +274,7 @@ namespace mumfim
         material_model->FindCategoryByType("multiscale model");
     return getMicroscaleType(multiscale_model);
   }
-  void MultiscaleTissue::updateRVEExistence()
+  void MultiscaleTissueStep::updateRVEExistence()
   {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -296,7 +296,7 @@ namespace mumfim
     fo_cplg.updateRecv();
     nm_rves += nw_hdrs.size();
   }
-  void MultiscaleTissue::recoverSecondaryVariables(int step)
+  void MultiscaleTissueStep::recoverSecondaryVariables(int step)
   {
     NonlinearTissueStep::recoverSecondaryVariables(step);
     fo_cplg.recvRVEStepData();
@@ -361,7 +361,7 @@ namespace mumfim
     if (compute_ornt_2D) apf::synchronize(ornt_2D);
     if (compute_ornt_3D) apf::synchronize(ornt_3D);
   }
-  amsi::ElementalSystem * MultiscaleTissue::getIntegrator(apf::MeshEntity * me,
+  amsi::ElementalSystem * MultiscaleTissueStep::getIntegrator(apf::MeshEntity * me,
                                                           int ip)
   {
     MicroscaleType tp =
@@ -380,7 +380,7 @@ namespace mumfim
         return constitutives[apf_mesh->toModel(me)].get();
     }
   }
-  void MultiscaleTissue::loadRVELibraryInfo()
+  void MultiscaleTissueStep::loadRVELibraryInfo()
   {
     apf::MeshEntity * ent;
     auto * it = apf_mesh->begin(3);
@@ -471,7 +471,7 @@ namespace mumfim
     }
     apf_mesh->end(it);
   }
-  void MultiscaleTissue::getExternalRVEData(apf::MeshEntity * ent,
+  void MultiscaleTissueStep::getExternalRVEData(apf::MeshEntity * ent,
                                             micro_fo_header & hdr,
                                             micro_fo_params & prm,
                                             micro_fo_solver & slvr,
@@ -657,7 +657,7 @@ namespace mumfim
       {
         std::cerr << amplitude_cat->GetType()
                   << " is not a valid amplitude type. attDefs and "
-                     "MultiscaleTissue are out of sync."
+                     "MultiscaleTissueStep are out of sync."
                   << std::endl;
         MPI_Abort(AMSI_COMM_WORLD, 1);
       }
@@ -721,7 +721,7 @@ namespace mumfim
         else
         {
           std::cerr << field_output->GetType()
-                    << " is not a valid field output type. MultiscaleTissue "
+                    << " is not a valid field output type. MultiscaleTissueStep "
                        "and attDefs are out of sync."
                     << std::endl;
           MPI_Abort(AMSI_COMM_WORLD, 1);
@@ -791,7 +791,7 @@ namespace mumfim
       {
         std::cerr << detect_oscillation->GetType()
                   << " is not a valid oscillation detection type. attDefs and "
-                     "MultiscaleTissue are out of sync.\n";
+                     "MultiscaleTissueStep are out of sync.\n";
         std::abort();
       }
       if (num_attempts == nullptr || cut_factor == nullptr)
@@ -823,11 +823,11 @@ namespace mumfim
     {
       std::cerr << microscale_convergence->GetType()
                 << " is not a valid microscale convergence type. attDefs and "
-                   " MultiscaleTissue are out of sync.\n";
+                   " MultiscaleTissueStep are out of sync.\n";
       std::abort();
     }
   }
-  void MultiscaleTissue::getInternalRVEData(apf::MeshEntity * rgn,
+  void MultiscaleTissueStep::getInternalRVEData(apf::MeshEntity * rgn,
                                             micro_fo_header & hdr,
                                             micro_fo_params &,
                                             micro_fo_init_data & dat)
@@ -847,7 +847,7 @@ namespace mumfim
     apf::destroyElement(ce);
     apf::destroyMeshElement(mlm);
   }
-  int MultiscaleTissue::getRVEDirectoryIndex(apf::MeshEntity * ent)
+  int MultiscaleTissueStep::getRVEDirectoryIndex(apf::MeshEntity * ent)
   {
     apf::ModelEntity * gEnt = apf_mesh->toModel(ent);
     int ii = -1;

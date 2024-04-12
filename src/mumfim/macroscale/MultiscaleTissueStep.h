@@ -2,7 +2,7 @@
 #define MUMFIM_MULTISCALE_TISSUE_H_
 #include <memory>
 #include <unordered_map>
-#include "MultiscaleTissue.h"
+#include "MultiscaleTissueStep.h"
 #include "NonlinearTissueStep.h"
 #include "RVECoupling.h"
 #include "ReadStochasticField.h"
@@ -10,14 +10,14 @@ namespace mumfim
 {
   using StochasticFieldMap = std::map<std::string, std::shared_ptr<GridData> >;
   // refactor so this is only dealing with a single type of RVE
-  class MultiscaleTissue : public NonlinearTissueStep
+  class MultiscaleTissueStep : public NonlinearTissueStep
   {
     public:
-    MultiscaleTissue(apf::Mesh * mesh,
+    MultiscaleTissueStep(apf::Mesh * mesh,
                      const mt::CategoryNode & analysis_case,
                      MPI_Comm cm,
                      const amsi::Multiscale &);
-    ~MultiscaleTissue();
+    ~MultiscaleTissueStep();
     virtual void Assemble(amsi::LAS * las) override;
     void computeRVEs();
     void initMicro();

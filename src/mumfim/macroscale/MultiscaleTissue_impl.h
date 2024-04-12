@@ -3,7 +3,7 @@ namespace mumfim
 {
   /*
     template <typename O>
-    void MultiscaleTissue::updateRVEDeletion(O o, bool all)
+    void MultiscaleTissueStep::updateRVEDeletion(O o, bool all)
     {
     int iid = 0;
     for(auto me = rve_ents.begin(); me != rve_ents.end(); me++)
@@ -29,7 +29,7 @@ namespace mumfim
     }
   */
   template <typename O1, typename O2, typename O3, typename O4, typename O5>
-  void MultiscaleTissue::serializeNewRVEData(O1 new_hdrs, O2 new_prms,
+  void MultiscaleTissueStep::serializeNewRVEData(O1 new_hdrs, O2 new_prms,
                                              O3 new_data, O4 new_slvr_prms,
                                              O5 new_int_slvr_prms, bool all)
   {
@@ -73,7 +73,7 @@ namespace mumfim
   //  micro already knew this from initialization so it wasn't
   //  important at macro
   template <typename O>
-    void MultiscaleTissue::serializeRVEData(O o)
+    void MultiscaleTissueStep::serializeRVEData(O o)
   {
     apf::MeshEntity * rgn = NULL;
     for(auto * it = apf_mesh->begin(3); (rgn = apf_mesh->iterate(it)); )
