@@ -25,6 +25,7 @@ namespace mumfim
       , dv_prev(0.0)
       , load_step(0)
       , iteration(0)
+      , _analysis_case(analysis_case)
   {
     apf_primary_field =
         apf::createLagrangeField(apf_mesh, "displacement", apf::VECTOR, 1);
@@ -202,8 +203,7 @@ namespace mumfim
   void NonlinearTissueStep::computeInitGuess(amsi::LAS * las)
   {
     // LinearTissueStep lt(model, mesh, prob_def, solution_strategy, analysis_comm);
-    LinearTissueStep lt(apf_mesh, problem_definition, solution_strategy, output,
-                    analysis_comm);
+    LinearTissueStep lt(apf_mesh, _analysis_case, analysis_comm);
     lt.setSimulationTime(T);
     LinearSolver(&lt, las);
     las->iter();

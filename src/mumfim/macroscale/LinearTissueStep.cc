@@ -6,14 +6,10 @@
 namespace mumfim
 {
   LinearTissueStep::LinearTissueStep(apf::Mesh * mesh,
-                             const amsi::ModelDefinition & problem_definition,
-                             const amsi::ModelDefinition & solution_strategy,
-                             const amsi::ModelDefinition & output,
-                             MPI_Comm cm)
+                            const mt::CategoryNode & analysis_case,
+                            MPI_Comm cm)
       : AnalysisStep(mesh,
-                   problem_definition,
-                   solution_strategy,
-                   output,
+                   analysis_case,
                    {},
                    {},
                    "macro",
@@ -103,7 +99,7 @@ namespace mumfim
   {
     // For the LinearTissueStep, the coordinate field is assumed to be the meshes
     // coordinate field. This is unlike what's used in NonlinearTissueStep and
-    // MultiscaleTissue
+    // MultiscaleTissueStep
     ApplyBC_Neumann(las);
     AssembleIntegratorIntoLAS(
         las,

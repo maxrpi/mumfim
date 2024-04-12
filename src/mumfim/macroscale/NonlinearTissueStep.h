@@ -45,6 +45,7 @@ namespace mumfim
     double dv_prev;
     int load_step;
     int iteration;
+    const mt::CategoryNode & _analysis_case;
     public:
     NonlinearTissueStep(apf::Mesh* mesh, const mt::CategoryNode& analysis_case,
                     MPI_Comm cm = AMSI_COMM_SCALE);
