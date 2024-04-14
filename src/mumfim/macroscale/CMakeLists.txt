@@ -10,6 +10,7 @@ set(biotissue_src_files
         FEMAnalysis.cc
         MultiscaleTissueAnalysis.cc
         SinglescaleTissueAnalysis.cc
+        StepperFactory.cc
         VolumeConstraint.cc
         VolumeConvergence.cc
         UpdatedLagrangianMaterialIntegrator.cc

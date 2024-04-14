@@ -1,4 +1,5 @@
 #include "SinglescaleTissueAnalysis.h"
+#include "StepperFactory.h"
 mumfim::SinglescaleTissueAnalysis::SinglescaleTissueAnalysis(
     apf::Mesh * mesh,
     std::unique_ptr<const mt::CategoryNode> cs,
@@ -8,7 +9,7 @@ mumfim::SinglescaleTissueAnalysis::SinglescaleTissueAnalysis(
 {
   const auto * solution_strategy =
       mt::GetPrimaryCategoryByType(analysis_case.get(), "solution strategy");
-  analysis_step_ = new NonlinearTissueStep(mesh, *analysis_case, cm);
+  analysis_step_ = createStepper(mesh, *analysis_case, cm);
   addVolumeTracking(mesh, solution_strategy);
   // We want to do the tissue iteration after we compute the volumes
   itr_stps.push_back(new TissueIteration(analysis_step_, las));
