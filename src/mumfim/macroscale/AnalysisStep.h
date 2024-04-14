@@ -1,5 +1,5 @@
-#ifndef MUMFIM_MACROSCALE_TISSUEBASE_H
-#define MUMFIM_MACROSCALE_TISSUEBASE_H
+#ifndef MUMFIM_MACROSCALE_ANALYSISSTEP_H
+#define MUMFIM_MACROSCALE_ANALYSISSTEP_H
 #include <apfFEA.h>
 #include <memory>
 #include <unordered_map>
