@@ -22,25 +22,26 @@ namespace mumfim
                    "\"macro\" analysis type.\n";
       MPI_Abort(AMSI_COMM_WORLD, 1);
     }
-    //const auto * problem_type = mt::GetCategoryByType(problem_definition, "problem type");
+    int problem_type_index = 22; // set default to nonlinear tissue for now,
+                                // to not break old problems
     const auto * problem_type_trait = mt::GetCategoryModelTraitByType<mt::IntMT>
           (problem_definition, "problem type");
     if (problem_type_trait == nullptr)
     {
-      std::cerr << R"("problem definition" must have "problem type" trait)"<<std::endl;
-      MPI_Abort(AMSI_COMM_WORLD, 1);
+      std::cerr << R"("problem definition" must have "problem type" trait. Defaulting to NonlinearTissue)"<<std::endl;
     }
-    int problem_type_index = (*problem_type_trait)();
-    //const auto * problem_type_index = mt::MTCast<mt::IntMT>( problem_definition->FindCategoryNode("index"));
+    else{
+      problem_type_index = (*problem_type_trait)();
+    }
 
     switch(problem_type_index){
-      case(1):
+      case(11):
         //stepper = new LinearHeatConductionStep(mesh, analysis_case, com);
         break;
-      case(2):
+      case(21):
         stepper = new LinearTissueStep(mesh, analysis_case, com);
         break;
-      case(3):
+      case(22):
         stepper = new NonlinearTissueStep(mesh, analysis_case, com);
         break;
       default:
