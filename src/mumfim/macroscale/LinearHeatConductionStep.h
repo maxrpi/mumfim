@@ -30,7 +30,7 @@ namespace mumfim
     LinearHeatConductionStep(apf::Mesh* mesh, const mt::CategoryNode& analysis_case,
                     MPI_Comm comm_ = AMSI_COMM_SCALE);
     virtual ~LinearHeatConductionStep();
-    //void computeInitGuess(amsi::LAS* las);
+    void computeInitGuess(amsi::LAS* las);
     //void step();
     //void iter();
     void Assemble(amsi::LAS* las) override;

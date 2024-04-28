@@ -23,7 +23,10 @@ namespace mumfim
       , constitutives()
       , iteration(0)
   {
-    temperature = apf::createLagrangeField(apf_mesh, "temperature", apf::SCALAR, 1);
+    apf_primary_field = apf::createLagrangeField(apf_mesh, "temperature", apf::SCALAR, 1);
+    apf::zeroField(apf_primary_field);
+    apf_primary_numbering = apf::createNumbering(apf_primary_field);
+
     kappa = apf::createIPField(apf_mesh, "kappa", apf::MATRIX, 1);
 
     // Future expansion
@@ -32,7 +35,6 @@ namespace mumfim
     //apf::zeroField(sources);
     //apf::zeroField(flux);
 
-    apf_primary_numbering = apf::createNumbering(temperature);
     amsi::applyUniqueRegionTags(apf_mesh);
     
     static constexpr int dimension = 3;
@@ -49,19 +51,23 @@ namespace mumfim
       const auto * continuum_model =
           mt::GetPrimaryCategoryByType(material_model, "continuum model");
       const auto * tmp =
-          mt::GetCategoryModelTraitByType<mt::MatrixMT>(continuum_model,
+          //mt::GetCategoryModelTraitByType<mt::MatrixMT>(continuum_model,
+          mt::GetCategoryModelTraitByType<mt::ScalarMT>(continuum_model,
                                                         "kappa");
+      auto k = (*tmp)();
+      // This needs to be unique_ptr-ized, as it currently isn't deleted anywhere.
+      apf::Matrix3x3 * kappa_r = new apf::Matrix3x3(
+        k  , 0.0, 0.0,
+        0.0, k  , 0.0,
+        0.0, 0.0, k  );
 
+      /*
       apf::Matrix3x3 * kappa_r = new apf::Matrix3x3(
         (*tmp)(0,0), (*tmp)(1,0), (*tmp)(2,0),
         (*tmp)(0,1), (*tmp)(1,1), (*tmp)(2,1),
         (*tmp)(0,2), (*tmp)(1,2), (*tmp)(2,2)
       );
-
-      // Confirm symmetric
-      for (int i=0; i < 3; i++)
-        for (int j=i+1; j < 3; j++)
-          assert((*tmp)(i,j) == (*tmp)(j,j));
+      */
 
       std::cout << "continuum model type: " << continuum_model->GetType()
                 << "\n";
@@ -72,7 +78,7 @@ namespace mumfim
         MPI_Abort(AMSI_COMM_WORLD, 1);
       }
       constitutives[reinterpret_cast<apf::ModelEntity *>(gent)] =
-          std::make_unique<LinearHeatIntegrator>(temperature, kappa_r);
+          std::make_unique<LinearHeatIntegrator>(apf_primary_field, kappa_r);
     }
     gmi_end(gmodel, it);
     neumann_bcs.push_back(
@@ -97,7 +103,7 @@ namespace mumfim
 
   LinearHeatConductionStep::~LinearHeatConductionStep()
   {
-    apf::destroyField(temperature);
+    apf::destroyField(apf_primary_field);
     apf::destroyField(flux);
     apf::destroyField(kappa);
     apf::destroyField(sources);
@@ -108,21 +114,19 @@ namespace mumfim
     AssembleIntegratorIntoLAS(
         las,
         [this](apf::MeshEntity * me, int) {
-          return constitutives[apf_mesh->toModel(me)]
-              .get();
+          auto tmp = constitutives[apf_mesh->toModel(me)].get();
+          return tmp;
         });
   }
 
 
   /* Linear problem, just solve it as the initial guess*/
-  /*
   void LinearHeatConductionStep::computeInitGuess(amsi::LAS * las)
   {
     setSimulationTime(T);
     LinearSolver(this, las);
     las->iter();
   }
-  */
   /*
   void LinearHeatConductionStep::step()
   {

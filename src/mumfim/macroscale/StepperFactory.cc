@@ -1,5 +1,5 @@
 #include "StepperFactory.h"
-//#include "LinearHeatConductionStep.h"
+#include "LinearHeatConductionStep.h"
 #include "LinearTissueStep.h"
 #include "NonlinearTissueStep.h"
 #include "MultiscaleTissueStep.h"
@@ -36,7 +36,7 @@ namespace mumfim
 
     switch(problem_type_index){
       case(11):
-        //stepper = new LinearHeatConductionStep(mesh, analysis_case, com);
+        stepper = new LinearHeatConductionStep(mesh, analysis_case, com);
         break;
       case(21):
         stepper = new LinearTissueStep(mesh, analysis_case, com);

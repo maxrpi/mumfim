@@ -47,12 +47,13 @@ namespace mumfim
 
   void LinearHeatIntegrator::inElement(apf::MeshElement *me)
   {
-    // Populate kappa_e (elemental kappa) with IP value
-    // from K_ field for this integrator interation
-    //apf::Matrix3x3 K[1];
-    //K_->getNodeValue(apf::getMeshEntity(me), 0, K);
-    //D = apf::fromMatrix<3,3>(K[0]);
-    ;
+    e = apf::createElement(T_, me);
+    nenodes = apf::countNodes(e);
+    nedofs = nenodes * 1;
+    Ke.setSize(nedofs, nedofs);
+    Ke.zero();
+    fe.setSize(nedofs);
+    fe.zero();
   }
 
   void LinearHeatIntegrator::atPoint(apf::Vector3 const &p, double w, double dV)
