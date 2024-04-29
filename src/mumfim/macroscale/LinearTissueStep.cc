@@ -1,8 +1,11 @@
 #include "LinearTissueStep.h"
+
 #include <amsiLinearElasticConstitutive.h>
 #include <amsiNeumannIntegrators.h>
 #include <apfFunctions.h>
 #include <gmi.h>
+
+#include "AnalysisStep.h"
 namespace mumfim
 {
   LinearTissueStep::LinearTissueStep(apf::Mesh * mesh,

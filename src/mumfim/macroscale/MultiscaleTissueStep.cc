@@ -172,7 +172,7 @@ namespace mumfim
                      << ", "
                      << "start_fea" << std::endl;
 #endif
-    apfFEA::ApplyBC_Neumann(las);
+    AnalysisStep::ApplyBC_Neumann(las);
     // wrap getIntegrator in lambda because invoke
     AssembleIntegratorIntoLAS(las, [this](apf::MeshEntity * me, int ip)
                               { return getIntegrator(me, ip); }, current_coords);

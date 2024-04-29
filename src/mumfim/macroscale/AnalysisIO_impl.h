@@ -1,6 +1,9 @@
 #include <apfMeasure.h>
 #include <apfWrapper.h>
+
+#include "AnalysisStep.h"
 #include "NonlinearTissueStep.h"
+
 namespace mumfim
 {
   template <typename I>

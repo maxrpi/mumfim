@@ -1,5 +1,6 @@
 set(biotissue_src_files
         Analysis.cc
+        AnalysisStep.cc
         LinearHeatIntegrator.cc
         LinearHeatConductionStep.cc
         LinearTissueStep.cc

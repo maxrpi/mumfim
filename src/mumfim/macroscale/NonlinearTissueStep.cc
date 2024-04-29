@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "AnalysisStep.h"
 #include "NeoHookeanIntegrator.h"
 #include "TrnsIsoNeoHookeanIntegrator.h"
 #include "gmi.h"

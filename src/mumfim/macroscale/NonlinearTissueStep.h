@@ -7,13 +7,11 @@
 #include <mumfim/microscale/MultiscaleMicroFOParams.h>
 #include <mumfim/microscale/RVE.h>
 // amsi
-#include <apfFEA.h>
 #include <Solvers.h>
 #include <Solvers.h>
 #include <amsiAnalysis.h>
 #include <amsiMultiscale.h>
 #include <amsiUtil.h>
-#include <apfFEA.h>
 #include <apfFunctions.h>
 #include <iostream>
 #include <list>

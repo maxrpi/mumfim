@@ -1,4 +1,6 @@
+#include "AnalysisStep.h"
 #include "amsiDeformation.h"
+
 namespace mumfim
 {
   /*

@@ -1,6 +1,5 @@
 #ifndef MUMFIM_LINEARTISSUE_H_
 #define MUMFIM_LINEARTISSUE_H_
-#include <apfFEA.h>
 #include <memory>
 #include "AnalysisStep.h"
 namespace mumfim

@@ -1,12 +1,17 @@
 #include "mumfim/macroscale/FEMAnalysis.h"
+
 #include <amsiPETScLAS.h>
 #include <apf.h>
 #include <petscsnes.h>
+
 #include <iostream>
+
+#include "AnalysisStep.h"
 #include "mumfim/exceptions.h"
 #include "mumfim/macroscale/AnalysisIO.h"
 #include "mumfim/macroscale/ModelTraits.h"
 #include "mumfim/macroscale/PetscSNES.h"
+
 // #define MumfimPetscCall(petsc_error_code) if(petsc_error_code) [[unlikely]] {
 //  throw mumfim::petsc_error(petsc_error_code); }
 namespace mumfim

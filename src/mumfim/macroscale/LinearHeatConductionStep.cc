@@ -11,8 +11,9 @@
 #include <stdexcept>
 #include <string>
 
-#include "gmi.h"
+#include "AnalysisStep.h"
 #include "LinearHeatIntegrator.h"
+#include "gmi.h"
 
 namespace mumfim
 {
