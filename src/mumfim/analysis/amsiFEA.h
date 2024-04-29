@@ -132,7 +132,7 @@ namespace amsi {
   }
 
   template <>
-  void FEA::AssembleDOFs(LAS* las, int num_elemental_dofs, int* dof_numbers,
+  inline void FEA::AssembleDOFs<double>(LAS* las, int num_elemental_dofs, int* dof_numbers,
                          const double* node_values, double* Ke, double* fe,
                          bool includes_body_forces) const
   {
