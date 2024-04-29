@@ -4,7 +4,7 @@
 #include <fstream>
 #include <vector>
 namespace amsi {
-  FEA::FEA(const ModelDefinition& pd,
+  FEAStep::FEAStep(const ModelDefinition& pd,
            const ModelDefinition& ss,
            const ModelDefinition& out, std::vector<DirichletBCEntry> dbc,
            std::vector<NeumannBCEntry> nbc, const std::string& analysis_name,
@@ -24,7 +24,8 @@ namespace amsi {
       , neumann_bcs(std::move(nbc))
   {
   }
-  FEA::FEA(const mt::CategoryNode& analysis_case,
+
+  FEAStep::FEAStep(const mt::CategoryNode& analysis_case,
            std::vector<DirichletBCEntry> dbc, std::vector<NeumannBCEntry> nbc,
            const std::string& analysis_name, MPI_Comm cm)
       : constraint_dofs(0)
@@ -67,13 +68,13 @@ namespace amsi {
         .unassociated = std::make_shared<mt::CategoryNode>(*out)};
     assert(solution_strategy.associated->GetNullGeometry() != nullptr);
   }
-  void FEA::setSimulationTime(double t)
+  void FEAStep::setSimulationTime(double t)
   {
     T = t;
     if (!PCU_Comm_Self())
       std::cout << "Simulation time updated: " << T << std::endl;
   }
-  void FEA::GetDOFInfo(int& global, int& local, int& offset)
+  void FEAStep::GetDOFInfo(int& global, int& local, int& offset)
   {
     global = global_dof_count;
     local = local_dof_count;

@@ -53,4 +53,4 @@ At present any geometry supported by both the Parasolid modeling kernel (and rel
  
  multiscale adaptive information -> single scale adaptation -> single scale load balancing -> multiscale load balancing
  
-  - additional mircoscale simulations (FEA) parallelized using partitioned mesh 
+  - additional mircoscale simulations (FEAStep) parallelized using partitioned mesh

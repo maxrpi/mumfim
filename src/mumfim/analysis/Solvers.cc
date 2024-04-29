@@ -12,10 +12,10 @@ namespace amsi
   class LinearIteration : public Iteration
   {
   private:
-    FEA * fem;
+  FEAStep * fem;
     LAS * las;
   public:
-    LinearIteration(FEA * f, LAS * l)
+    LinearIteration(FEAStep * f, LAS * l)
       : fem(f)
       , las(l)
     { }
@@ -35,11 +35,11 @@ namespace amsi
       Iteration::iterate();
     }
   };
-  Iteration * buildLinearFEMIteration(FEA * f, LAS * l)
+  Iteration * buildLinearFEMIteration(FEAStep * f, LAS * l)
   {
     return new LinearIteration(f,l);
   }
-  void LinearSolver(FEA * fem,LAS * las)
+  void LinearSolver(FEAStep * fem,LAS * las)
   {
     int global_dof_count, local_dof_count, first_local_dof;
     fem->ApplyBC_Dirichlet();
@@ -58,7 +58,7 @@ namespace amsi
     fem->UpdateDOFs(solution);
     //las->PrintSolution(std::cout);
   }
-  void NewtonSolver(FEA * fem,
+  void NewtonSolver(FEAStep * fem,
                     LAS * las,
                     int iteration_cap,
                     double epsilon,

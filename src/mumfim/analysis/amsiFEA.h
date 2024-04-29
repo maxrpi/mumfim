@@ -26,7 +26,8 @@ namespace amsi {
   void Model_PrintInfo(T model, std::ostream& out);
   template <typename T>
   void Mesh_PrintInfo(T mesh, std::ostream& out);
-  class FEA {
+  class FEAStep
+  {
     protected:
     // additional global dofs from constraints
     int constraint_dofs;
@@ -42,8 +43,8 @@ namespace amsi {
     bool numbered;
     // the current simulation time (for dynamics) or psuedo-time (for statics)
     // might want to pull this out entirely somehow... just pass in to pertinent
-    // member functions especially as it's really only used for nonlinear FEA,
-    // for linear FEA it is just set to 1
+    // member functions especially as it's really only used for nonlinear FEAStep,
+    // for linear FEAStep it is just set to 1
     double T;
     // name of this analysis
     std::string name;
@@ -58,11 +59,11 @@ namespace amsi {
     std::vector<DirichletBCEntry> dirichlet_bcs;
     std::vector<NeumannBCEntry> neumann_bcs;
     public:
-    FEA(const mt::CategoryNode& mt, std::vector<DirichletBCEntry> dbc,
+    FEAStep(const mt::CategoryNode& mt, std::vector<DirichletBCEntry> dbc,
         std::vector<NeumannBCEntry> nbc, const std::string& analysis_name = "",
         MPI_Comm cm = AMSI_COMM_SCALE);
 
-    FEA(const ModelDefinition& problem_definition,
+    FEAStep(const ModelDefinition& problem_definition,
         const ModelDefinition& solution_strategy,
         const ModelDefinition& output,
         std::vector<DirichletBCEntry> dbc,
@@ -87,7 +88,7 @@ namespace amsi {
                       int* cl_nms, double* Ke);
   void assembleVector(LAS* las, int rw_cnt, int* rw_nms, double* fe);
   template <typename NODE_TYPE>
-  void FEA::AssembleDOFs(LAS* las, int num_elemental_dofs, int* dof_numbers,
+  void FEAStep::AssembleDOFs(LAS* las, int num_elemental_dofs, int* dof_numbers,
                          const NODE_TYPE* node_values, double* Ke, double* fe,
                          bool includes_body_forces) const
   {
@@ -132,7 +133,7 @@ namespace amsi {
   }
 
   template <>
-  inline void FEA::AssembleDOFs<double>(LAS* las, int num_elemental_dofs, int* dof_numbers,
+  inline void FEAStep::AssembleDOFs<double>(LAS* las, int num_elemental_dofs, int* dof_numbers,
                          const double* node_values, double* Ke, double* fe,
                          bool includes_body_forces) const
   {

@@ -39,7 +39,7 @@ namespace amsi {
     }
     void run() { apply(f); }
   };
-  class apfFEA : public FEA {
+  class apfFEA : public FEAStep {
     protected:
     apf::Mesh* apf_mesh;
     apf::Field* apf_primary_field;
@@ -52,7 +52,7 @@ namespace amsi {
            std::vector<DirichletBCEntry> dbc, std::vector<NeumannBCEntry> nbc,
            const std::string& analysis_name = "", MPI_Comm cm = AMSI_COMM_SCALE,
            bool own_mesh = false)
-        : FEA(analysis_case, std::move(dbc), std::move(nbc), analysis_name, cm)
+        : FEAStep(analysis_case, std::move(dbc), std::move(nbc), analysis_name, cm)
         , apf_mesh(in_mesh)
         , apf_primary_field(NULL)
         , apf_primary_delta_field(NULL)
@@ -68,7 +68,7 @@ namespace amsi {
            std::vector<NeumannBCEntry> nbc,
            const std::string& analysis_name = "", MPI_Comm cm = AMSI_COMM_SCALE,
            bool own_mesh = false)
-        : FEA(problem_definition, solution_strategy, output, std::move(dbc),
+        : FEAStep(problem_definition, solution_strategy, output, std::move(dbc),
               std::move(nbc), analysis_name, cm)
         , apf_mesh(in_mesh)
         , apf_primary_field(NULL)
