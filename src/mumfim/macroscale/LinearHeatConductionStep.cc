@@ -98,7 +98,7 @@ namespace mumfim
                               //.mt_type = amsi::NeumannBCType::normal_flux});
     dirichlet_bcs.push_back(
         amsi::DirichletBCEntry{ .categories = {"temperature"},
-                                .mt_name = "magnitude"});
+                                .mt_name = "temperature"});
   }
 
   LinearHeatConductionStep::~LinearHeatConductionStep()
