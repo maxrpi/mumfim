@@ -125,6 +125,7 @@ namespace mumfim
   {
     setSimulationTime(T);
     LinearSolver(this, las);
+    apf::writeASCIIVtkFiles("foo", this->apf_mesh);
     las->iter();
   }
   /*

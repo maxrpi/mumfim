@@ -12,6 +12,7 @@
 #include "amsiLAS.h"
 #include "amsiMPI.h"
 #include "model_traits/AssociatedModelTraits.h"
+#include "mumfim/exceptions.h"
 namespace amsi {
   struct ModelDefinition {
     std::shared_ptr<const mt::AssociatedModelTraits<mt::DimIdGeometry>> associated;
@@ -127,6 +128,37 @@ namespace amsi {
       fe[ii] = fe[ii] + dfe[ii];
     delete[] dirichletValue;
     delete[] dfe;
+    assembleVector(las, num_elemental_dofs, dof_numbers, &fe[0]);
+  }
+
+  template <>
+  void FEA::AssembleDOFs(LAS* las, int num_elemental_dofs, int* dof_numbers,
+                         const double* node_values, double* Ke, double* fe,
+                         bool includes_body_forces) const
+  {
+    if (Ke == NULL) {
+      throw mumfim::mumfim_error("Ke is null going into AssembleDOFs");
+    }
+    if (!includes_body_forces) {
+      throw mumfim::mumfim_error("Scalar does not handle case with !includes_body_force");
+    }
+
+    assembleMatrix(las, num_elemental_dofs, dof_numbers, num_elemental_dofs,
+                    dof_numbers, &Ke[0]);
+
+    /// Modification of fe to correctly account for nonzero dirichlet boundary
+    /// conditions
+    std::vector<double> dirichletValue(num_elemental_dofs, 0.0);
+    for (int ii = 0; ii < num_elemental_dofs; ii++) {
+      if (dof_numbers[ii] < 0) dirichletValue[ii] = node_values[ii];
+    }
+    std::vector<double> dfe(num_elemental_dofs, 0.0);
+    for (int ii = 0; ii < num_elemental_dofs; ii++)
+      for (int jj = 0; jj < num_elemental_dofs; jj++)
+        dfe[ii] =
+            dfe[ii] + Ke[ii * num_elemental_dofs + jj] * dirichletValue[ii];
+    for (int ii = 0; ii < num_elemental_dofs; ii++)
+      fe[ii] = fe[ii] + dfe[ii];
     assembleVector(las, num_elemental_dofs, dof_numbers, &fe[0]);
   }
 }  // namespace amsi

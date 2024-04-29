@@ -47,6 +47,7 @@ add_library(mumfim::analysis ALIAS analysis)
 # properties for downstream packages
 target_include_directories(analysis PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 if (NOT ${BUILD_EXTERNAL})

@@ -4,6 +4,7 @@
 #include <apfShape.h>
 #include <cstring> //memset
 #include <cmath>
+#include <cassert>
 namespace mumfim
 {
 
@@ -49,34 +50,42 @@ namespace mumfim
   {
     e = apf::createElement(T_, me);
     nenodes = apf::countNodes(e);
-    nedofs = nenodes * 1;
-    Ke.setSize(nedofs, nedofs);
+    nedofs = nenodes;  // Assumes scalar values at nodes
+    Ke.setSize(nenodes, nenodes);
     Ke.zero();
-    fe.setSize(nedofs);
+    fe.setSize(nenodes);
     fe.zero();
   }
 
   void LinearHeatIntegrator::atPoint(apf::Vector3 const &p, double w, double dV)
   {
     // Using TJHughes, pp 68-70, add nonhomogenous part later
-    //apf::NewArray<double> Na; apf::getShapeValues(e, p, Na);
+    // fe holds the residual vector, because of the incremental formulation
+    apf::NewArray<double> Na; apf::getShapeValues(e, p, Na);
+    apf::NewArray<double> nodalTheta; apf::getScalarNodes(e, nodalTheta);
     apf::NewArray<apf::Vector3> Ba; apf::getShapeGrads(e, p, Ba);
 
-    apf::DynamicMatrix B(3, nedofs);
-    apf::DynamicMatrix BT(nedofs, 3);
-    for(int i = 0; i < nedofs; i++)
+    apf::DynamicMatrix B(3, nenodes);
+    apf::DynamicMatrix BT(nenodes, 3);
+    apf::DynamicVector Theta(nenodes);
+    assert(dV>0);
+    for(int i = 0; i < nenodes; i++)
     {
       B(0, i) = BT(i, 0) = Ba[i][0];
       B(1, i) = BT(i, 1) = Ba[i][1];
       B(2, i) = BT(i, 2) = Ba[i][2];
+      Theta(i) = nodalTheta[i] * Na[i];
     }
 
-    apf::DynamicMatrix BT_D_B(nedofs,nedofs);
-    apf::DynamicMatrix D_B(3,nedofs); // intermediate product (the flux!)
+    apf::DynamicMatrix BT_D_B(nenodes,nenodes);
+    apf::DynamicMatrix D_B(3,nenodes); // intermediate product (the flux!)
     apf::multiply(D, B, D_B);
     apf::multiply(BT, D_B, BT_D_B);
     // numerical integration
     BT_D_B *= w * dV;  // BT_D_B now elemental integral contribution for p (ke_p)
     Ke += BT_D_B;  // Accumulate over integration points
+    // fe holds the residual vector, because of the incremental formulation
+    // In the case of heat sources the residual will be Ke*theta - rhs
+    apf::multiply(Ke, Theta, fe); 
   }
 }
