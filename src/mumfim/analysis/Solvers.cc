@@ -52,11 +52,19 @@ namespace amsi
     fem->Assemble(las);
     ///// solve linear system
     las->solve();
+
+    /*
+    std::cout << "Vector" << std::endl;
+    las->PrintVector(std::cout);
+    std::cout << "Matrix" << std::endl;
+    las->PrintMatrix(std::cout);
+    std::cout << "Solution" << std::endl;
+    las->PrintSolution(std::cout);
+    */
     ///// update analysis with solution
     double * solution = NULL;
     las->GetSolution(solution);
     fem->UpdateDOFs(solution);
-    //las->PrintSolution(std::cout);
   }
   void NewtonSolver(FEAStep * fem,
                     LAS * las,

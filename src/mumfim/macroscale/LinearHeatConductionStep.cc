@@ -126,7 +126,22 @@ namespace mumfim
   {
     setSimulationTime(T);
     LinearSolver(this, las);
-    apf::writeASCIIVtkFiles("foo", this->apf_mesh);
+    /*
+    std::cout << "*****After computeInitGuess solve \n";
+    std::cout << "   Solution:\n";
+    las->PrintSolution(std::cout);
+    std::cout << "   Matrix:\n";
+    las->PrintMatrix(std::cout);
+    std::cout << "   Vector:\n";
+    las->PrintVector(std::cout);
+
+    double norm;
+    las->GetVectorNorm(norm);
+    std::cout << "   VectorNorm:" << norm << "\n  ";
+    */
+
+    apf::writeASCIIVtkFiles("postInitGuess", this->apf_mesh);
+    //throw mumfim_error("Just did LinearSolver call in computeInitGuess");
     las->iter();
   }
   /*

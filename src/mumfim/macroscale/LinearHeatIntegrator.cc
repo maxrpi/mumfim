@@ -31,15 +31,14 @@ namespace mumfim
   }
 
   LinearHeatIntegrator::LinearHeatIntegrator(apf::Field * temperature, apf::Matrix3x3 * kappa)
-    : amsi::ElementalSystem(temperature,1)
+    : ElementalSystem(temperature,1)
     , T_(temperature)
     , D(apf::fromMatrix(*kappa))
   {
-    ;
   }
 
   LinearHeatIntegrator::LinearHeatIntegrator(apf::Field * temperature, apf::Field * kappa)
-    : amsi::ElementalSystem(temperature,1)
+    : ElementalSystem(temperature,1)
     , T_(temperature)
     , K_(kappa)
   {
@@ -74,7 +73,7 @@ namespace mumfim
       B(0, i) = BT(i, 0) = Ba[i][0];
       B(1, i) = BT(i, 1) = Ba[i][1];
       B(2, i) = BT(i, 2) = Ba[i][2];
-      Theta(i) = nodalTheta[i] * Na[i];
+      Theta(i) = nodalTheta[i];//* Na[i];
     }
 
     apf::DynamicMatrix BT_D_B(nenodes,nenodes);
@@ -86,6 +85,16 @@ namespace mumfim
     Ke += BT_D_B;  // Accumulate over integration points
     // fe holds the residual vector, because of the incremental formulation
     // In the case of heat sources the residual will be Ke*theta - rhs
-    apf::multiply(Ke, Theta, fe); 
+    apf::DynamicVector fe_ip(nedofs);
+    apf::multiply(Ke, Theta, fe_ip); 
+    fe -=  fe_ip;
+
+    /*
+    std::cout << "w, dV:" << w << " " << dV << "\n";
+    std::cout << "Ke" << "\n";
+    std::cout << Ke << "\n";
+    std::cout << "fe" << "\n";
+    std::cout << fe << "\n";
+    */
   }
 }

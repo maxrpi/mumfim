@@ -81,6 +81,7 @@ namespace mumfim
         mt::GetCategoryByType(solution_strategy, "track volume");
     if (track_volume != nullptr)
     {
+      throw mumfim_error("Trying to do volume tracking, which isn't set up.");
       for (const auto & tracked_volume : track_volume->GetModelTraitNodes())
       {
         std::vector<apf::ModelEntity *> model_entities;
@@ -127,6 +128,12 @@ namespace mumfim
       // logVolumes(vol_itms.begin(), vol_itms.end(), vols, stp,
       // analysis_step_->getUField());
       analysis_step_->computeInitGuess(las);
+      
+      {
+      double norm;
+      las->GetVectorNorm(norm);
+      std::cout << "After computeInitGuess ************\n  vectorNorm: " << norm << "\n";
+      }
       completed = false;
       SNES snes(cm);
       MumfimPetscCall(SNESSetFromOptions(snes));
@@ -136,11 +143,14 @@ namespace mumfim
         std::cerr << "Current solver only works with petsc backend!\n";
         std::exit(1);
       }
+
       Mat AMat, PMat;
       MumfimPetscCall(
           MatDuplicate(petsc_las->GetMatrix(), MAT_DO_NOT_COPY_VALUES, &PMat));
       MumfimPetscCall(
           MatDuplicate(petsc_las->GetMatrix(), MAT_DO_NOT_COPY_VALUES, &AMat));
+
+
       MumfimPetscCall(
           SNESSetFunction(
               snes, NULL,
@@ -194,7 +204,17 @@ namespace mumfim
                   MatAssemblyEnd(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
                   an->analysis_step_->iter();
                   VecCopy(petsc_las->GetVector(), residual);
+                  double norm;
+                  an->las->GetVectorNorm(norm);
+                  std::cout << "vectorNorm: " << norm << "\n";
                   //an->analysis_step_->AcceptDOFs();
+                  std::cout << "   Solution:\n";
+                  an->las->PrintSolution(std::cout);
+                  std::cout << "   Matrix:\n";
+                  an->las->PrintMatrix(std::cout);
+                  std::cout << "   Vector:\n";
+                  an->las->PrintVector(std::cout);
+                  std::cout << "End of SNESfunction try block\n\n\n";
                 }
                 catch (mumfim_error & e)
                 {
@@ -219,6 +239,8 @@ namespace mumfim
                 return 0;
               },
               static_cast<void *>(this)));
+      
+
       MumfimPetscCall(SNESSetJacobian(
           snes, AMat, AMat,
           [](::SNES snes, Vec displacement, Mat Amat, Mat Pmat,
@@ -231,6 +253,7 @@ namespace mumfim
             return 0;
           },
           static_cast<void *>(this)));
+
       MumfimPetscCall(SNESSetConvergenceTest(
           snes,
           [](::SNES snes, PetscInt it, PetscReal xnorm, PetscReal gnorm,
@@ -255,6 +278,7 @@ namespace mumfim
             // return 0;
           },
           static_cast<void *>(this), NULL));
+
       while (!completed)
       {
 #ifdef LOGRUN

@@ -44,12 +44,23 @@ namespace mumfim
         apf::Element * elm = apf::createElement(sys->getField(), mlm);
         sys->process(mlm);
         apf::NewArray<apf::Vector3> dofs;
-        apf::getVectorNodes(elm, dofs);
         apf::NewArray<int> ids;
         apf::getElementNumbers(apf_primary_numbering, me, ids);
-        AssembleDOFs(las, sys->numElementalDOFs(), &ids[0], &dofs[0],
+        
+        if(apf::getValueType(apf_primary_field) == apf::SCALAR)
+        {
+          apf::NewArray<double> dofs;
+          apf::getScalarNodes(elm, dofs);
+          AssembleDOFs(las, sys->numElementalDOFs(), &ids[0], &dofs[0],
                      &sys->getKe()(0, 0), &sys->getfe()(0),
                      sys->includesBodyForces());
+        } else
+        {
+          apf::getVectorNodes(elm, dofs);
+          AssembleDOFs(las, sys->numElementalDOFs(), &ids[0], &dofs[0],
+                      &sys->getKe()(0, 0), &sys->getfe()(0),
+                      sys->includesBodyForces());
+        }
         apf::destroyElement(elm);
         apf::destroyMeshElement(mlm);
       }
