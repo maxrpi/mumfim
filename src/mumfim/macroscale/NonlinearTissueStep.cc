@@ -13,7 +13,6 @@
 
 #include "AnalysisStep.h"
 #include "NeoHookeanIntegrator.h"
-#include "TrnsIsoNeoHookeanIntegrator.h"
 #include "gmi.h"
 
 namespace mumfim
@@ -132,21 +131,7 @@ namespace mumfim
       }
       else if (continuum_model->GetType() == "transverse_isotropic")
       {
-        const auto * axis = mt::GetCategoryModelTraitByType<mt::VectorMT>(
-            continuum_model, "axis");
-        const auto * axial_shear_modulus =
-            mt::GetCategoryModelTraitByType<mt::ScalarMT>(
-                continuum_model, "axial shear modulus");
-        const auto * axial_youngs_modulus =
-            mt::GetCategoryModelTraitByType<mt::ScalarMT>(
-                continuum_model, "axial youngs modulus");
-        std::array<double, 3> axs = {(*axis)(0), (*axis)(1), (*axis)(2)};
-        constitutives[reinterpret_cast<apf::ModelEntity *>(gent)] =
-            std::make_unique<TrnsIsoNeoHookeanIntegrator>(
-                this, apf_primary_field, stf_vrtn, dfm_grd, axl_yngs_mod,
-                current_coords, (*youngs_modulus)(), (*poisson_ratio)(),
-                &axs[0], (*axial_shear_modulus)(), (*axial_youngs_modulus)(),
-                1);
+        throw mumfim_error("Transverse isotropic material not currently supported");
       }
       else if (continuum_model->GetType() == "pytorch")
       {
@@ -161,6 +146,9 @@ namespace mumfim
 #else
         throw mumfim_error("MUMFIM was not compiled with PyTorch support");
 #endif
+      }
+      else {
+        throw mumfim_error("Invalid continuum model was supplied");
       }
     }
     gmi_end(gmodel, it);
