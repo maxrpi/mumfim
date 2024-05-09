@@ -10,7 +10,6 @@
 #include "LinearTissueStep.h"
 #include "MultiscaleTissueStep.h"
 #include "FEMAnalysis.h"
-#include "VolumeConvergence.h"
 namespace mumfim
 {
   class MultiscaleTissueIteration : public amsi::Iteration

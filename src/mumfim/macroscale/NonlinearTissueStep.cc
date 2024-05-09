@@ -87,12 +87,7 @@ namespace mumfim
             "incompressible");
     if (incompressible != nullptr)
     {
-      for (const auto & incompressible_constraint :
-           incompressible->GetCategoryNodes())
-      {
-        vol_cnst.push_back(buildVolumeConstraint(incompressible_constraint,
-                                                 apf_primary_numbering));
-      }
+      throw mumfim_error("incompressibility not currently supported");
     }
     static constexpr int dimension = 3;
     auto * gmodel = mesh->getModel();
@@ -214,16 +209,12 @@ namespace mumfim
 
   void NonlinearTissueStep::step()
   {
-    for (auto cnst = vol_cnst.begin(); cnst != vol_cnst.end(); cnst++)
-      (*cnst)->step();
     iteration = 0;
     load_step++;
   }
 
   void NonlinearTissueStep::iter()
   {
-    for (auto cnst = vol_cnst.begin(); cnst != vol_cnst.end(); cnst++)
-      (*cnst)->iter();
     iteration++;
   }
 
@@ -239,12 +230,6 @@ namespace mumfim
         [this](apf::MeshEntity * me, int)
         { return constitutives[apf_mesh->toModel(me)].get(); },
         current_coords);
-    // double nrm = 0.0;
-    // las->GetVectorNorm(nrm);
-    //  process constraints
-    for (auto cnst = vol_cnst.begin(); cnst != vol_cnst.end(); cnst++)
-      (*cnst)->apply(las);
-    // las->GetVectorNorm(nrm);
   }
 
   void NonlinearTissueStep::UpdateDOFs(const double * sol)

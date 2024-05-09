@@ -10,8 +10,6 @@ mumfim::SinglescaleTissueAnalysis::SinglescaleTissueAnalysis(
   const auto * solution_strategy =
       mt::GetPrimaryCategoryByType(analysis_case.get(), "solution strategy");
   analysis_step_ = createStepper(mesh, *analysis_case, cm);
-  //addVolumeTracking(mesh, solution_strategy);
-  // We want to do the tissue iteration after we compute the volumes
   itr_stps.push_back(new TissueIteration(analysis_step_, las));
   //itr_stps.push_back(new TissueCheckpointIteration(this));
   itr = new amsi::MultiIteration(itr_stps.begin(), itr_stps.end());

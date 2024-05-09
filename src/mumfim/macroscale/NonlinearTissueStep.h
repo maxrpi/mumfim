@@ -2,7 +2,6 @@
 #define MUMFIM_NONLINEAR_TISSUE_H_
 #include "LinearTissueStep.h"
 #include "StiffnessVariation.h"
-#include "VolumeConstraint.h"
 // micro_fo
 #include <mumfim/microscale/MultiscaleMicroFOParams.h>
 #include <mumfim/microscale/RVE.h>
@@ -28,7 +27,6 @@ namespace mumfim
     amsi::XpYFunc * xpyfnc;
     std::map<apf::ModelEntity*, std::unique_ptr<amsi::ElementalSystem>> constitutives;
     std::vector<std::unique_ptr<StiffnessVariation>> stf_vrtn_cnst;
-    std::vector<std::unique_ptr<VolumeConstraint>> vol_cnst;
     apf::Field * delta_u;
     apf::Field* accepted_displacements;
     apf::Field * current_coords;  // coordinates in current config

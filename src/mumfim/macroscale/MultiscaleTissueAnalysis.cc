@@ -16,7 +16,6 @@
 #include "ModelTraits.h"
 #include "MultiscaleConvergence.h"
 #include "MultiscaleTissueStep.h"
-#include "VolumeConvergence.h"
 #include "mumfim/exceptions.h"
 namespace mumfim
 {
@@ -56,7 +55,6 @@ namespace mumfim
       throw mumfim_error("solution strategy is required for multiscale analysis");
     }
     analysis_step_ = new MultiscaleTissueStep(mesh, *(this->analysis_case), cm, multiscale_);
-    addVolumeTracking(mesh,solution_strategy);
     // compute the multiscale tissue iteration after the volumes have been
     // computed
     itr_stps.push_back(new MultiscaleTissueIteration(
@@ -67,8 +65,6 @@ namespace mumfim
     itr = new amsi::MultiIteration(itr_stps.begin(), itr_stps.end());
     buildLASConvergenceOperators(solution_strategy, itr, las,
                                  std::back_inserter(cvg_stps));
-    buildVolConvergenceOperators(solution_strategy, itr, analysis_step_->getUField(),
-                                 trkd_vols, std::back_inserter(cvg_stps));
     cvg = new MultiscaleConvergence(cvg_stps.begin(), cvg_stps.end(), cplng);
     static_cast<MultiscaleTissueStep *>(analysis_step_)->initMicro();
   }

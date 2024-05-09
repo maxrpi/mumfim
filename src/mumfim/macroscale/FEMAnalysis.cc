@@ -32,7 +32,6 @@ namespace mumfim
       , itr_stps()
       , cvg()
       , cvg_stps()
-      , trkd_vols()
       , las(new amsi::PetscLAS(0, 0))
       , completed(false)
       , state_fn()
@@ -72,23 +71,6 @@ namespace mumfim
     amsi::log(state) << "STEP, ITER,   T, DESC\n"
                      << "   0,    0, 0.0, init\n";
 #endif
-  }
-  void FEMAnalysis::addVolumeTracking(
-      apf::Mesh * mesh,
-      const mt::CategoryNode * solution_strategy)
-  {
-    const auto * track_volume =
-        mt::GetCategoryByType(solution_strategy, "track volume");
-    if (track_volume != nullptr)
-    {
-      for (const auto & tracked_volume : track_volume->GetModelTraitNodes())
-      {
-        std::vector<apf::ModelEntity *> model_entities;
-        GetModelTraitNodeGeometry(mesh, &tracked_volume, model_entities);
-        trkd_vols[tracked_volume.GetName()] = new VolCalc(
-            model_entities.begin(), model_entities.end(), analysis_step_->getUField());
-      }
-    }
   }
   FEMAnalysis::~FEMAnalysis()
   {
