@@ -43,51 +43,12 @@ namespace mumfim
     int mx_stp;
     int iteration{0};
     AnalysisStep * analysis_step_;
-    // this is actually a MultiIteration
-    amsi::MultiIteration * itr;
-    std::vector<amsi::Iteration *> itr_stps;
-    // this is actually a MultiConvergence
-    // name of track volume model trait and ptr to volume calc
     amsi::LAS * las;
     bool completed;
     // log filenames
     std::string state_fn;
     // logs
     amsi::Log state;
-  };
-  class TissueIteration : public amsi::Iteration
-  {
-    protected:
-    AnalysisStep * tssu;
-    amsi::LAS * las;
-
-    public:
-    TissueIteration(AnalysisStep * t, amsi::LAS * l) : tssu(t), las(l) {}
-    virtual void iterate()
-    {
-      // Note this is same as FEMLinearIteration
-      LinearSolver(tssu, las);
-
-      tssu->iter();
-      // copies LHS/RHS into "old" state as needed for computing convergence
-      las->iter();
-      amsi::Iteration::iterate();
-    }
-  };
-  class TissueCheckpointIteration : public amsi::Iteration
-  {
-    protected:
-    FEMAnalysis * tssu;
-
-    public:
-    TissueCheckpointIteration(FEMAnalysis * t) : tssu(t) {}
-    virtual void iterate()
-    {
-      std::cout << "Checkpointing iteration: " << this->iteration()
-                << std::endl;
-      tssu->checkpoint();
-      amsi::Iteration::iterate();
-    }
   };
 }  // namespace mumfim
 #include "TissueAnalysis_impl.h"

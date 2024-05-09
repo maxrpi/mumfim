@@ -28,8 +28,6 @@ namespace mumfim
       , stp(0)
       , mx_stp(1)
       , analysis_step_(nullptr)
-      , itr()
-      , itr_stps()
       , las(new amsi::PetscLAS(0, 0))
       , completed(false)
       , state_fn()
@@ -72,16 +70,6 @@ namespace mumfim
   }
   FEMAnalysis::~FEMAnalysis()
   {
-    // since we know all of the iteration steps are allocated on the heap delete
-    // them
-    for (auto itr_stp = itr_stps.begin(); itr_stp != itr_stps.end(); ++itr_stp)
-    {
-      delete (*itr_stp);
-      (*itr_stp) = nullptr;
-    }
-    delete itr;
-    // since we know all of the convegence steps are allocated on the heap
-    // delete them
     delete analysis_step_;
     delete las;
 #ifdef LOGRUN
@@ -143,8 +131,6 @@ namespace mumfim
                   // and the call to check convergence
                   ++an->iteration;
                   // Given the trial displacement x, compute the residual
-                  // an->itr->iterate(); // this doesn't work as is. Writing out
-                  // steps See amsi::Solvers.cc LinearIteration this comes from
                   // UpdateDOF (Nonlinear Tissue)
                   // 1. Write the new solution into the displacement field
                   // las->iter() // we don't need to do this step since we are
@@ -232,8 +218,7 @@ namespace mumfim
       while (!completed)
       {
 #ifdef LOGRUN
-        amsi::log(state) << stp << ", " << itr->iteration() << ", "
-                         << MPI_Wtime() << ", "
+        amsi::log(state) << stp << ", " << MPI_Wtime() << ", "
                          << "start_step" << std::endl;
 #endif
         if (!PCU_Comm_Self()) std::cout << "Load step = " << stp << std::endl;
@@ -278,9 +263,6 @@ namespace mumfim
                   << std::endl;
         analysis_step_->recoverSecondaryVariables(stp);
         checkpoint();
-        // reset the iteration from the numerical solve after checkpointing
-        // which records iteration information
-        itr->reset();
         stp++;
         t += dt;
         analysis_step_->setSimulationTime(t);
@@ -320,15 +302,8 @@ namespace mumfim
     std::ofstream st_fs(state_fn.c_str(), std::ios::out | std::ios::app);
     amsi::flushToStream(state, st_fs);
 #endif
-    // write mesh to file
-    std::string pvd("/out.pvd");
-    std::ofstream pvdf;
-    int iteration = itr->iteration() - 1;
-    // std::cout << "ITERATION: " << iteration << std::endl;
     std::stringstream cnvrt;
-    cnvrt << "msh_stp_" << stp << "_iter_";
-    // amsi::writePvdFile(pvd, cnvrt.str(), iteration-1);
-    cnvrt << iteration;
+    cnvrt << "msh_stp_" << stp;
     apf::writeVtkFiles(
         std::string(amsi::fs->getResultsDir() + "/" + cnvrt.str()).c_str(),
         analysis_step_->getMesh());

@@ -22,18 +22,6 @@ namespace mumfim
   {
     std::cerr<<"We shouldn't be calling the multiscale tissue iteration if code is working as expected\n";
     std::abort();
-    if (!PCU_Comm_Self())
-      std::cout << "Multiscale Nonlinear Iteration : " << iteration()
-                << std::endl;
-    // Note!: We shouldn't need to call this here since preRun calls update micro!!
-    if (iteration() == 0) tssu->updateMicro();
-    // multiscale calls las->iter *before* fem_iter iterate
-    // single scale calls it afet! does this matter?
-    // This should only impact the first iteration. Where multiscale is probably
-    // wrong. Thaat's because this is used to updat the vectors for convergence.
-    las->iter();
-    fem_iter->iterate();
-    tssu->iter(); // ends up calling nonlineartissue iter which does volume stuff don't care about amsi::Iteration::iterate();
   }
   MultiscaleTissueAnalysis::MultiscaleTissueAnalysis(
       apf::Mesh * mesh,
@@ -54,14 +42,6 @@ namespace mumfim
       throw mumfim_error("solution strategy is required for multiscale analysis");
     }
     analysis_step_ = new MultiscaleTissueStep(mesh, *(this->analysis_case), cm, multiscale_);
-    // compute the multiscale tissue iteration after the volumes have been
-    // computed
-    itr_stps.push_back(new MultiscaleTissueIteration(
-        static_cast<MultiscaleTissueStep *>(analysis_step_), las));
-    // checkpoint after performing an iteration (this way numbering lines up
-    // properly)
-    itr_stps.push_back(new TissueCheckpointIteration(this));
-    itr = new amsi::MultiIteration(itr_stps.begin(), itr_stps.end());
     static_cast<MultiscaleTissueStep *>(analysis_step_)->initMicro();
   }
   void MultiscaleTissueAnalysis::finalizeStep()
