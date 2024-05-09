@@ -47,8 +47,6 @@ namespace mumfim
     amsi::MultiIteration * itr;
     std::vector<amsi::Iteration *> itr_stps;
     // this is actually a MultiConvergence
-    amsi::Convergence * cvg;
-    std::vector<amsi::Convergence *> cvg_stps;
     // name of track volume model trait and ptr to volume calc
     amsi::LAS * las;
     bool completed;

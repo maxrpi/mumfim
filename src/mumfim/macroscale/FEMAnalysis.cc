@@ -30,8 +30,6 @@ namespace mumfim
       , analysis_step_(nullptr)
       , itr()
       , itr_stps()
-      , cvg()
-      , cvg_stps()
       , las(new amsi::PetscLAS(0, 0))
       , completed(false)
       , state_fn()
@@ -84,12 +82,6 @@ namespace mumfim
     delete itr;
     // since we know all of the convegence steps are allocated on the heap
     // delete them
-    for (auto cvg_stp = cvg_stps.begin(); cvg_stp != cvg_stps.end(); ++cvg_stp)
-    {
-      delete (*cvg_stp);
-      (*cvg_stp) = nullptr;
-    }
-    delete cvg;
     delete analysis_step_;
     delete las;
 #ifdef LOGRUN

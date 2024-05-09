@@ -14,7 +14,6 @@
 #include <sstream>
 #include "AnalysisIO.h"
 #include "ModelTraits.h"
-#include "MultiscaleConvergence.h"
 #include "MultiscaleTissueStep.h"
 #include "mumfim/exceptions.h"
 namespace mumfim
@@ -63,9 +62,6 @@ namespace mumfim
     // properly)
     itr_stps.push_back(new TissueCheckpointIteration(this));
     itr = new amsi::MultiIteration(itr_stps.begin(), itr_stps.end());
-    buildLASConvergenceOperators(solution_strategy, itr, las,
-                                 std::back_inserter(cvg_stps));
-    cvg = new MultiscaleConvergence(cvg_stps.begin(), cvg_stps.end(), cplng);
     static_cast<MultiscaleTissueStep *>(analysis_step_)->initMicro();
   }
   void MultiscaleTissueAnalysis::finalizeStep()
