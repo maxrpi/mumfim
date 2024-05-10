@@ -8,7 +8,6 @@
 
 #include "AnalysisStep.h"
 #include "mumfim/exceptions.h"
-#include "mumfim/macroscale/AnalysisIO.h"
 #include "mumfim/macroscale/ModelTraits.h"
 #include "mumfim/macroscale/PetscSNES.h"
 
@@ -214,7 +213,6 @@ namespace mumfim
       // write the initial state of everything
       t += dt;
       analysis_step_->setSimulationTime(t);
-      // logVolumes(vol_itms.begin(), vol_itms.end(), vols, stp,
       // analysis_step_->getUField());
       analysis_step_->computeInitGuess(las);
       completed = false;

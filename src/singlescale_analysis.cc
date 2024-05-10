@@ -9,7 +9,6 @@
 #include <mpi.h>
 #include <iostream>
 #include <string>
-#include "mumfim/macroscale/AnalysisIO.h"
 #include "mumfim/macroscale/SinglescaleTissueAnalysis.h"
 #include "amsiAnalysis.h"
 #if not defined(__APPLE__)

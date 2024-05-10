@@ -12,7 +12,6 @@
 #include <iterator>
 #include <limits>
 #include <sstream>
-#include "AnalysisIO.h"
 #include "ModelTraits.h"
 #include "MultiscaleTissueStep.h"
 #include "mumfim/exceptions.h"
