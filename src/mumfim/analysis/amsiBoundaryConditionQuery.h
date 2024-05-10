@@ -25,31 +25,12 @@ namespace amsi
     BCQuery(BC * b)
       : bc(b)
     { }
-    virtual int numComps()
-    {
-      return numBCComponents(bc->tp,bc->sbtp);
-    }
-    virtual bool isFixed(int ii = 0) = 0;
+
+  virtual bool isFixed(int ii = 0) = 0;
     virtual bool isConst(int ii = 0) = 0;
     virtual bool isTimeExpr(int ii = 0) = 0;
     virtual bool isSpaceExpr(int ii = 0) = 0;
     virtual double getValue(int ii = 0, ...) = 0;
   };
-  /**
-   * Get a c-style string describing the boundary condition type;
-   */
-  char const * getBCTypeString(int tp);
-  /**
-   * Get a c-style string describing the type of boundary condition's subtype
-   */
-  char const * getBCSubtypeString(int tp, int sbpt);
-  /**
-   * Get a c-style string describing the dirichlet boundary condition type.
-   */
-  char const * getDirichletTypeString(int tp);
-  /**
-   * Get a c-style string describing the neumann boundary condition type.
-   */
-  char const * getNeumannTypeString(int tp);
 }
 #endif

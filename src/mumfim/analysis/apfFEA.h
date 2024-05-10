@@ -5,7 +5,6 @@
 #include <apfNumbering.h>
 #include <iomanip>
 #include "ElementalSystem.h"
-#include "amsiBoundaryConditionQuery.h"
 #include "amsiFEA.h"
 #include "apfFieldOp.h"
 namespace amsi {

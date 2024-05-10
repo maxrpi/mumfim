@@ -20,7 +20,6 @@ set(analysis_src_files
         amsiFEA.cc
         amsiLinearElasticConstitutive.cc
         amsiNonlinearAnalysis.cc
-        amsiNeumannIntegrators.cc
         amsiPETScLAS.cc
         apfElementalSystem.cc
         apfFunctions.cc
