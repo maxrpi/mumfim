@@ -22,7 +22,6 @@ set(analysis_src_files
         amsiNonlinearAnalysis.cc
         amsiNeumannIntegrators.cc
         amsiPETScLAS.cc
-        apfBoundaryConditions.cc
         apfElementalSystem.cc
         apfFunctions.cc
         apfMatrixUtil.cc

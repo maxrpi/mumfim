@@ -51,8 +51,5 @@ namespace amsi
    * Get a c-style string describing the neumann boundary condition type.
    */
   char const * getNeumannTypeString(int tp);
-  template <typename O>
-    void getApplicableBCTypesForField(int fld_tp, int bc_tp, O out);
 }
-#include "amsiBoundaryConditionQuery_impl.h"
 #endif

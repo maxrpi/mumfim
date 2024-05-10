@@ -4,15 +4,8 @@
 #include <apfMesh.h>
 #include <apfNumbering.h>
 
-//#include <iomanip>
-//#include <memory>
-//#include <unordered_map>
-
 #include "ElementalSystem.h"
-//#include "amsiBoundaryConditionQuery.h"
-//#include "apfFieldOp.h"
 #include "mumfim/analysis/amsiFEA.h"
-//#include "mumfim/exceptions.h"
 
 namespace mumfim
 {

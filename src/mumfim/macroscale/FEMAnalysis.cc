@@ -71,6 +71,7 @@ namespace mumfim
       MatAssemblyBegin(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
       MatAssemblyEnd(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
       an->analysis_step_->iter();
+      // instead of doing this we can probably pas las->GetVector() to SNESSetFunction
       VecCopy(petsc_las->GetVector(), residual);
       // an->analysis_step_->AcceptDOFs();
     }
@@ -228,8 +229,10 @@ namespace mumfim
       Mat AMat;
       MumfimPetscCall(
           MatDuplicate(petsc_las->GetMatrix(), MAT_DO_NOT_COPY_VALUES, &AMat));
+      // here we can pass the vector to store the residual i.e., GetVector()
       MumfimPetscCall(SNESSetFunction(snes, nullptr, CalculateResidual,
                                       static_cast<void *>(this)));
+      // can probably pass GetMatrix() here without issue
       MumfimPetscCall(SNESSetJacobian(snes, AMat, AMat, CalculateJacobian,
                                       static_cast<void *>(this)));
       MumfimPetscCall(SNESSetConvergenceTest(
