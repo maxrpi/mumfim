@@ -29,12 +29,9 @@ set(analysis_src_files
         apfMeshUtil.cc
         apfWrapper.cc
         apfLabelRegions.cc
-        MatrixUtil.h
-        FullLULAS.cc
         Solvers.cc
         ElementalSystem.cc
         apfFEA.cc
-        MatrixUtil.cc
         amsiNonlinearConvergenceOperator.cc
         amsiNeumannIntegratorsMT.cc)
 
