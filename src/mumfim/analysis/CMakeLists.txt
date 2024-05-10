@@ -14,30 +14,20 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/amsiAnalysisConfig.h.in
 set(analysis_src_files
         amsiAnalysis.cc
         amsiBoundaryConditions.cc
-        amsiBoundaryConditionQuery.cc
         amsiDeformation.cc
-        amsiFields.cc
         amsiFEA.cc
         amsiLinearElasticConstitutive.cc
         amsiNonlinearAnalysis.cc
-        amsiNeumannIntegrators.cc
         amsiPETScLAS.cc
-        apfBoundaryConditions.cc
         apfElementalSystem.cc
         apfFunctions.cc
         apfMatrixUtil.cc
         apfMeasure.cc
         apfMeshIterator.cc
         apfMeshUtil.cc
-        apfWrapper.cc
         apfLabelRegions.cc
-        MatrixUtil.h
-        FullLULAS.cc
         Solvers.cc
         ElementalSystem.cc
-        apfFEA.cc
-        MatrixUtil.cc
-        amsiNonlinearConvergenceOperator.cc
         amsiNeumannIntegratorsMT.cc)
 
 # Add the library to create

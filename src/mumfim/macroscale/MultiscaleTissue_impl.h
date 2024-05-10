@@ -3,33 +3,6 @@
 
 namespace mumfim
 {
-  /*
-    template <typename O>
-    void MultiscaleTissueStep::updateRVEDeletion(O o, bool all)
-    {
-    int iid = 0;
-    for(auto me = rve_ents.begin(); me != rve_ents.end(); me++)
-    {
-    apf::MeshElement * mlm = apf::createMeshElement(apf_mesh,*me);
-    int num_gauss_pts = apf::countIntPoints(mlm,getOrder(mlm));
-    for(int ii = 0 ; ii < num_gauss_pts; ii++)
-    {
-    int crt = apf::getScalar(crt_rve,*me,ii);
-    int prv = apf::getScalar(prv_rve,*me,ii);
-    if((crt == NONE && prv != NONE) || all)
-    {
-    o = iid;
-    ++o;
-    // assumed that removing one RVE from an entity removed that entity from the list of entities containing RVEs, not necessarily the case when using multiply IP per ent
-    //me = rve_ents.erase(me);
-    //me--;
-    }
-    iid++;
-    }
-    apf::destroyMeshElement(mlm);
-    }
-    }
-  */
   template <typename O1, typename O2, typename O3, typename O4, typename O5>
   void MultiscaleTissueStep::serializeNewRVEData(O1 new_hdrs, O2 new_prms,
                                              O3 new_data, O4 new_slvr_prms,

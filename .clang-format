@@ -3,7 +3,6 @@ BreakBeforeBraces: Allman
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 BreakConstructorInitializers: BeforeComma
 NamespaceIndentation: All
-MaxEmptyLinesToKeep: 1
 AccessModifierOffset: 0
 AllowShortLoopsOnASingleLine: false
 DerivePointerAlignment: false

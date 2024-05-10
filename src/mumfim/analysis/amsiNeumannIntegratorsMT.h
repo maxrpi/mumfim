@@ -5,7 +5,6 @@
 #include <model_traits/ModelTrait.h>
 #include "amsiLAS.h"
 #include "apfFunctions.h"
-#include "amsiBoundaryConditionQuery.h"
 namespace amsi {
   enum class NeumannBCType { pressure, traction};
   class MTEvaluator : public mt::MTVisitor {

@@ -14,8 +14,6 @@ set(biotissue_src_files
         MultiscaleTissueAnalysis.cc
         SinglescaleTissueAnalysis.cc
         StepperFactory.cc
-        VolumeConstraint.cc
-        VolumeConvergence.cc
         UpdatedLagrangianMaterialIntegrator.cc
         UpdatedLagrangianMaterialIntegrator.h
         materials/NeoHookean.cc
