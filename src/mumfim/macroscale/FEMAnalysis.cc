@@ -108,10 +108,10 @@ namespace mumfim
    * \param residual the residual vector computed from the FEM solution
    * \param ctx for this function, the ctx object refers to the FEMAnalysis
    */
-  PetscErrorCode FEMAnalysis::CalculateJacobian(::SNES snes,
-                                                Vec displacement,
+  PetscErrorCode FEMAnalysis::CalculateJacobian(::SNES /* unused (snes) */,
+                                                Vec /* unused (solution) */,
                                                 Mat Amat,
-                                                Mat Pmat,
+                                                Mat /* unused (PMat) */,
                                                 void * ctx)
   {
     auto * an = static_cast<FEMAnalysis *>(ctx);
@@ -227,9 +227,7 @@ namespace mumfim
         std::exit(1);
       }
       // set up the SNES functions
-      Mat AMat, PMat;
-      MumfimPetscCall(
-          MatDuplicate(petsc_las->GetMatrix(), MAT_DO_NOT_COPY_VALUES, &PMat));
+      Mat AMat;
       MumfimPetscCall(
           MatDuplicate(petsc_las->GetMatrix(), MAT_DO_NOT_COPY_VALUES, &AMat));
       MumfimPetscCall(SNESSetFunction(snes, nullptr, CalculateResidual,
