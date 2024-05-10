@@ -54,30 +54,5 @@ namespace amsi
     virtual int LocalOffset() { return 0; }
     virtual ~LAS() {};
   };
-  /*
-    class VectorAccess
-    {
-    private:
-    LAS * las;
-    int rw;
-    public:
-    VectorAdder(LAS * l)
-    : las(l)
-    , rw(-1)
-    { }
-    VectorAdder & operator[](int r)
-    {
-    rw = r;
-    }
-    double operator+=(double val)
-    {
-    las->addToVector(rw,val);
-    }
-    };
-    class MatrixAccess
-    {
-
-    };
-  */
 }
 #endif
