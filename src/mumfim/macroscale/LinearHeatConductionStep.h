@@ -1,13 +1,11 @@
 #ifndef MUMFIM_LINEAR_HEAT_CONDUCTION_STEP_H_
 #define MUMFIM_LINEAR_HEAT_CONDUCTION_STEP_H_
 // amsi
-#include <apfFEA.h>
 #include <Solvers.h>
 #include <Solvers.h>
 #include <amsiAnalysis.h>
 #include <amsiMultiscale.h>
 #include <amsiUtil.h>
-#include <apfFEA.h>
 #include <apfFunctions.h>
 #include <iostream>
 #include <list>

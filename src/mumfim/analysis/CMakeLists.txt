@@ -30,8 +30,6 @@ set(analysis_src_files
         apfLabelRegions.cc
         Solvers.cc
         ElementalSystem.cc
-        apfFEA.cc
-        amsiNonlinearConvergenceOperator.cc
         amsiNeumannIntegratorsMT.cc)
 
 # Add the library to create
