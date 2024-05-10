@@ -5,18 +5,6 @@
 #include <model_traits/CategoryNode.h>
 namespace mumfim
 {
-  /**
-   * Extracts the volume convergence regions from a simmetrix case
-   * @param solution_strategy associated solution strategy node
-   * @param las the amsi las system used for convergence
-   * @param out typically std::back_inserter to some sort of list type.
-   */
-  template <typename O>
-  void buildLASConvergenceOperators(
-      const mt::CategoryNode * solution_strategy,
-      amsi::MultiIteration * it,
-      amsi::LAS * las,
-      O out);
 
   class FEMAnalysis
   {
@@ -68,5 +56,4 @@ namespace mumfim
                                          void * ctx);
   };
 }  // namespace mumfim
-#include "TissueAnalysis_impl.h"
 #endif
