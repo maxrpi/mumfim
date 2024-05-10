@@ -16,6 +16,134 @@
 //  throw mumfim::petsc_error(petsc_error_code); }
 namespace mumfim
 {
+  /**
+   * computes the residual vector of the FEM system using the finite element method
+   * \param s snes solver object
+   * \param solution solution vector to use as an input to calculate the residual
+   * \param residual the residual vector computed from the FEM solution
+   * \param ctx for this function, the ctx object refers to the FEMAnalysis
+   */
+  PetscErrorCode FEMAnalysis::CalculateResidual(::SNES s,
+                                                Vec solution,
+                                                Vec residual,
+                                                void * ctx)
+  {
+    PetscInt iteration;
+    SNESGetIterationNumber(s, &iteration);
+    // bit hacky...if the last finalized iteration is same as
+    // previous
+    static int num_calls = 0;
+    auto * an = static_cast<FEMAnalysis *>(ctx);
+    auto * petsc_las = dynamic_cast<amsi::PetscLAS *>(an->las);
+    try
+    {
+      // in this case, we have called Function another time without
+      // checking for convergence. We sent 0 state to tell the
+      // microscale that the previous step was not "accepted"
+      if (an->iteration > 0)
+      {
+        an->finalizeIteration(0);
+      }
+      // Note iteration is not here an actual count of the
+      // iterations performed instead it is a test to make sure we
+      // call finalize iteration in the correct order between here
+      // and the call to check convergence
+      ++an->iteration;
+      // Given the trial displacement x, compute the residual
+      // UpdateDOF (Nonlinear Tissue)
+      // 1. Write the new solution into the displacement field
+      // las->iter() // we don't need to do this step since we are
+      // just using the K/r storage in las not actually computing
+      // residuals
+      const double * sol;
+      VecGetArrayRead(solution, &sol);
+      an->analysis_step_->UpdateDOFs(sol);
+      VecRestoreArrayRead(solution, &sol);
+      an->analysis_step_->ApplyBC_Dirichlet();
+      an->analysis_step_->RenumberDOFs();
+      int gbl, lcl, off;
+      an->analysis_step_->GetDOFInfo(gbl, lcl, off);
+      an->las->Reinitialize(gbl, lcl, off);
+      an->las->Zero();
+      // assembles into Mat/vec
+      an->analysis_step_->Assemble(an->las);
+      VecAssemblyBegin(petsc_las->GetVector());
+      VecAssemblyEnd(petsc_las->GetVector());
+      MatAssemblyBegin(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
+      MatAssemblyEnd(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
+      an->analysis_step_->iter();
+      VecCopy(petsc_las->GetVector(), residual);
+      // an->analysis_step_->AcceptDOFs();
+    }
+    catch (mumfim_error & e)
+    {
+      std::cerr << "Took bad step. Writing debug output\n";
+      std::cerr << e.what() << "\n";
+      an->stp = -2;
+      an->checkpoint();
+      PetscViewer viewer;
+      // write residual/stiffness to file
+      auto stiffness_matrix_file =
+          std::string(amsi::fs->getResultsDir() + "/petsc_vector_states.mtx");
+      MumfimPetscCall(PetscViewerBinaryOpen(AMSI_COMM_SCALE,
+                                            stiffness_matrix_file.c_str(),
+                                            FILE_MODE_WRITE, &viewer));
+      // tangent stiffness matrix
+      MumfimPetscCall(MatView(petsc_las->GetMatrix(), viewer));
+      // residual vector
+      MumfimPetscCall(VecView(petsc_las->GetVector(), viewer));
+      MumfimPetscCall(SNESSetFunctionDomainError(s));
+    }
+    return 0;
+  }
+
+  /**
+   * computes the Jacobian Matrix of the FEM system using the finite element
+   * method.
+   * \warning this function does not actually compute the jacobian, but copies
+   * the jacobian that is constructed when the residual is computed
+   * \param s snes solver object
+   * \param solution solution vector to use as an input to calculate the
+   * residual
+   * \param residual the residual vector computed from the FEM solution
+   * \param ctx for this function, the ctx object refers to the FEMAnalysis
+   */
+  PetscErrorCode FEMAnalysis::CalculateJacobian(::SNES snes,
+                                                Vec displacement,
+                                                Mat Amat,
+                                                Mat Pmat,
+                                                void * ctx)
+  {
+    auto * an = static_cast<FEMAnalysis *>(ctx);
+    auto * petsc_las = dynamic_cast<amsi::PetscLAS *>(an->las);
+    MumfimPetscCall(MatCopy(petsc_las->GetMatrix(), Amat, SAME_NONZERO_PATTERN));
+    MumfimPetscCall(MatScale(Amat, -1));
+    return 0;
+  }
+
+  PetscErrorCode FEMAnalysis::CheckConverged(::SNES snes,
+                                             PetscInt it,
+                                             PetscReal xnorm,
+                                             PetscReal gnorm,
+                                             PetscReal f,
+                                             SNESConvergedReason * reason,
+                                             void * ctx)
+  {
+    auto * an = static_cast<FEMAnalysis *>(ctx);
+    auto error = SNESConvergedDefault(snes, it, xnorm, gnorm, f, reason, ctx);
+    bool converged = (reason != nullptr && *reason != SNES_CONVERGED_ITERATING);
+    int accepted = converged ? 1 : -1;
+    // For MultiscaleAnalysis this informs microscale if the step is
+    // done the microscale knows that a value of 0 means step is
+    // accepted but not converged
+    an->finalizeIteration(accepted);
+    an->analysis_step_->AcceptDOFs();
+    // HACK set this to zero so we don't finalize iteration
+    // in form function
+    an->iteration = 0;
+    return error;
+  }
+
   FEMAnalysis::FEMAnalysis(apf::Mesh * mesh,
                                  std::unique_ptr<const mt::CategoryNode> cs,
                                  MPI_Comm c,
@@ -98,123 +226,19 @@ namespace mumfim
         std::cerr << "Current solver only works with petsc backend!\n";
         std::exit(1);
       }
+      // set up the SNES functions
       Mat AMat, PMat;
       MumfimPetscCall(
           MatDuplicate(petsc_las->GetMatrix(), MAT_DO_NOT_COPY_VALUES, &PMat));
       MumfimPetscCall(
           MatDuplicate(petsc_las->GetMatrix(), MAT_DO_NOT_COPY_VALUES, &AMat));
-      MumfimPetscCall(
-          SNESSetFunction(
-              snes, NULL,
-              [](::SNES s, Vec displacement, Vec residual,
-                 void * ctx) -> PetscErrorCode
-              {
-                PetscInt iteration;
-                SNESGetIterationNumber(s, &iteration);
-                // bit hacky...if the last finalized iteration is same as
-                // previous
-                static int num_calls = 0;
-                auto * an = static_cast<FEMAnalysis *>(ctx);
-                auto * petsc_las = dynamic_cast<amsi::PetscLAS *>(an->las);
-                try
-                {
-                  // in this case, we have called Function another time without
-                  // checking for convergence. We sent 0 state to tell the
-                  // microscale that the previous step was not "accepted"
-                  if (an->iteration > 0)
-                  {
-                    an->finalizeIteration(0);
-                  }
-                  // Note iteration is not here an actual count of the
-                  // iterations performed instead it is a test to make sure we
-                  // call finalize iteration in the correct order between here
-                  // and the call to check convergence
-                  ++an->iteration;
-                  // Given the trial displacement x, compute the residual
-                  // UpdateDOF (Nonlinear Tissue)
-                  // 1. Write the new solution into the displacement field
-                  // las->iter() // we don't need to do this step since we are
-                  // just using the K/r storage in las not actually computing
-                  // residuals
-                  const double * sol;
-                  VecGetArrayRead(displacement, &sol);
-                  an->analysis_step_->UpdateDOFs(sol);
-                  VecRestoreArrayRead(displacement, &sol);
-                  an->analysis_step_->ApplyBC_Dirichlet();
-                  an->analysis_step_->RenumberDOFs();
-                  int gbl, lcl, off;
-                  an->analysis_step_->GetDOFInfo(gbl, lcl, off);
-                  an->las->Reinitialize(gbl, lcl, off);
-                  an->las->Zero();
-                  // assembles into Mat/vec
-                  an->analysis_step_->Assemble(an->las);
-                  VecAssemblyBegin(petsc_las->GetVector());
-                  VecAssemblyEnd(petsc_las->GetVector());
-                  MatAssemblyBegin(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
-                  MatAssemblyEnd(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
-                  an->analysis_step_->iter();
-                  VecCopy(petsc_las->GetVector(), residual);
-                  //an->analysis_step_->AcceptDOFs();
-                }
-                catch (mumfim_error & e)
-                {
-                  std::cerr
-                      << "Took bad step. Writing debug output\n";
-                  std::cerr << e.what() << "\n";
-                  an->stp = -2;
-                  an->checkpoint();
-                  PetscViewer viewer;
-                  // write residual/stiffness to file
-                  auto stiffness_matrix_file = std::string(
-                      amsi::fs->getResultsDir() + "/petsc_vector_states.mtx");
-                  MumfimPetscCall(PetscViewerBinaryOpen(
-                      AMSI_COMM_SCALE, stiffness_matrix_file.c_str(),
-                      FILE_MODE_WRITE, &viewer));
-                  // tangent stiffness matrix
-                  MumfimPetscCall(MatView(petsc_las->GetMatrix(), viewer));
-                  // residual vector
-                  MumfimPetscCall(VecView(petsc_las->GetVector(), viewer));
-                  MumfimPetscCall(SNESSetFunctionDomainError(s));
-                }
-                return 0;
-              },
-              static_cast<void *>(this)));
-      MumfimPetscCall(SNESSetJacobian(
-          snes, AMat, AMat,
-          [](::SNES snes, Vec displacement, Mat Amat, Mat Pmat,
-             void * ctx) -> PetscErrorCode
-          {
-            auto * an = static_cast<FEMAnalysis *>(ctx);
-            auto * petsc_las = dynamic_cast<amsi::PetscLAS *>(an->las);
-            MatCopy(petsc_las->GetMatrix(), Amat, SAME_NONZERO_PATTERN);
-            MatScale(Amat, -1);
-            return 0;
-          },
-          static_cast<void *>(this)));
+      MumfimPetscCall(SNESSetFunction(snes, nullptr, CalculateResidual,
+                                      static_cast<void *>(this)));
+      MumfimPetscCall(SNESSetJacobian(snes, AMat, AMat, CalculateJacobian,
+                                      static_cast<void *>(this)));
       MumfimPetscCall(SNESSetConvergenceTest(
-          snes,
-          [](::SNES snes, PetscInt it, PetscReal xnorm, PetscReal gnorm,
-             PetscReal f, SNESConvergedReason * reason,
-             void * ctx) -> PetscErrorCode
-          {
-            auto * an = static_cast<FEMAnalysis *>(ctx);
-            auto error =
-                SNESConvergedDefault(snes, it, xnorm, gnorm, f, reason, ctx);
-            bool converged =
-                (reason != nullptr && *reason != SNES_CONVERGED_ITERATING);
-            int accepted = converged ? 1 : -1;
-            // For MultiscaleAnalysis this informs microscale if the step is
-            // done the microscale knows that a value of 0 means step is
-            // accepted but not converged
-            an->finalizeIteration(accepted);
-            an->analysis_step_->AcceptDOFs();
-            // HACK set this to zero so we don't finalize iteration
-            // in form function
-            an->iteration = 0;
-            return error;
-            // return 0;
-          },
-          static_cast<void *>(this), NULL));
+          snes, CheckConverged, static_cast<void *>(this), nullptr));
+
       while (!completed)
       {
 #ifdef LOGRUN
@@ -223,8 +247,6 @@ namespace mumfim
 #endif
         if (!PCU_Comm_Self()) std::cout << "Load step = " << stp << std::endl;
         // TODO wrap SNES in RAII class so create/destroy is exception safe
-        // initialize SNES
-        // solve
         MumfimPetscCall(
             SNESSolve(snes, nullptr, petsc_las->GetSolutionVector()));
         const auto converged = std::invoke(

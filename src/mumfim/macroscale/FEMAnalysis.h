@@ -49,6 +49,23 @@ namespace mumfim
     std::string state_fn;
     // logs
     amsi::Log state;
+    private:
+    static PetscErrorCode CalculateResidual(::SNES s,
+                                            Vec solution,
+                                            Vec residual,
+                                            void * ctx);
+    static PetscErrorCode CalculateJacobian(::SNES snes,
+                                            Vec displacement,
+                                            Mat Amat,
+                                            Mat Pmat,
+                                            void * ctx);
+    static PetscErrorCode CheckConverged(::SNES snes,
+                                         PetscInt it,
+                                         PetscReal xnorm,
+                                         PetscReal gnorm,
+                                         PetscReal f,
+                                         SNESConvergedReason * reason,
+                                         void * ctx);
   };
 }  // namespace mumfim
 #include "TissueAnalysis_impl.h"
