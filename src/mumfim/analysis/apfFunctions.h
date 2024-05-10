@@ -52,9 +52,7 @@ namespace amsi
   /// Write a paraview collection file for meshes with the format msh_prfx(ii) where ii ranges from 1 to sz.
   void writePvdFile(const std::string & col_fnm, const std::string & msh_prfx, int sz);
   void writePvdFile(const std::string & col_fnm, const std::vector<PvdData> & pvd_data);
-  ///
-  template <typename I>
-    void setEntitiesNode(apf::Field * fld, double vl, I bgn, I nd);
+
   // move below here into a fieldops-specific header or something
   /**
    * The way this is currently structured sucks as the component loop is in the applier classes, so the
@@ -364,5 +362,4 @@ namespace amsi
   void VoigtVectorToSymmMatrix(const apf::Vector<6> & vec, apf::Matrix3x3 & mat);
   void VoigtVectorToSymmMatrix(const apf::DynamicVector & vec, apf::Matrix3x3 & mat);
 }
-#include "apfFunctions_impl.h"
 #endif

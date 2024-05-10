@@ -13,7 +13,6 @@
 
 #include "AnalysisStep.h"
 #include "NeoHookeanIntegrator.h"
-#include "TrnsIsoNeoHookeanIntegrator.h"
 #include "gmi.h"
 
 namespace mumfim
@@ -87,12 +86,7 @@ namespace mumfim
             "incompressible");
     if (incompressible != nullptr)
     {
-      for (const auto & incompressible_constraint :
-           incompressible->GetCategoryNodes())
-      {
-        vol_cnst.push_back(buildVolumeConstraint(incompressible_constraint,
-                                                 apf_primary_numbering));
-      }
+      throw mumfim_error("incompressibility not currently supported");
     }
     static constexpr int dimension = 3;
     auto * gmodel = mesh->getModel();
@@ -137,21 +131,7 @@ namespace mumfim
       }
       else if (continuum_model->GetType() == "transverse_isotropic")
       {
-        const auto * axis = mt::GetCategoryModelTraitByType<mt::VectorMT>(
-            continuum_model, "axis");
-        const auto * axial_shear_modulus =
-            mt::GetCategoryModelTraitByType<mt::ScalarMT>(
-                continuum_model, "axial shear modulus");
-        const auto * axial_youngs_modulus =
-            mt::GetCategoryModelTraitByType<mt::ScalarMT>(
-                continuum_model, "axial youngs modulus");
-        std::array<double, 3> axs = {(*axis)(0), (*axis)(1), (*axis)(2)};
-        constitutives[reinterpret_cast<apf::ModelEntity *>(gent)] =
-            std::make_unique<TrnsIsoNeoHookeanIntegrator>(
-                this, apf_primary_field, stf_vrtn, dfm_grd, axl_yngs_mod,
-                current_coords, (*youngs_modulus)(), (*poisson_ratio)(),
-                &axs[0], (*axial_shear_modulus)(), (*axial_youngs_modulus)(),
-                1);
+        throw mumfim_error("Transverse isotropic material not currently supported");
       }
       else if (continuum_model->GetType() == "pytorch")
       {
@@ -166,6 +146,9 @@ namespace mumfim
 #else
         throw mumfim_error("MUMFIM was not compiled with PyTorch support");
 #endif
+      }
+      else {
+        throw mumfim_error("Invalid continuum model was supplied");
       }
     }
     gmi_end(gmodel, it);
@@ -214,16 +197,12 @@ namespace mumfim
 
   void NonlinearTissueStep::step()
   {
-    for (auto cnst = vol_cnst.begin(); cnst != vol_cnst.end(); cnst++)
-      (*cnst)->step();
     iteration = 0;
     load_step++;
   }
 
   void NonlinearTissueStep::iter()
   {
-    for (auto cnst = vol_cnst.begin(); cnst != vol_cnst.end(); cnst++)
-      (*cnst)->iter();
     iteration++;
   }
 
@@ -239,12 +218,6 @@ namespace mumfim
         [this](apf::MeshEntity * me, int)
         { return constitutives[apf_mesh->toModel(me)].get(); },
         current_coords);
-    // double nrm = 0.0;
-    // las->GetVectorNorm(nrm);
-    //  process constraints
-    for (auto cnst = vol_cnst.begin(); cnst != vol_cnst.end(); cnst++)
-      (*cnst)->apply(las);
-    // las->GetVectorNorm(nrm);
   }
 
   void NonlinearTissueStep::UpdateDOFs(const double * sol)
@@ -276,111 +249,4 @@ namespace mumfim
     apf::synchronize(delta_u);
   }
 
-  /**
-   * get the Neumann boundary condition value on the specified entity
-   * @param ent model entity to query
-   * @param frc will be filled with the value of the NeumannBCs
-   */
-  void NonlinearTissueStep::getLoadOn(apf::ModelEntity * ent, double * frc)
-  {
-    auto model_dimension = apf_mesh->getModelType(ent);
-    auto model_tag = apf_mesh->getModelTag(ent);
-    auto * associated_traits =
-        problem_definition.associated->Find({model_dimension, model_tag});
-    if (associated_traits == nullptr)
-    {
-      std::cerr << "Attempting to get Neumann BC on [" << model_dimension << ","
-                << model_tag << "].";
-      std::cerr << " No boundary conditions associated with that geometry.\n";
-      exit(1);
-    }
-    for (const auto & neumann_bc : neumann_bcs)
-    {
-      const mt::AssociatedCategoryNode * category_node = associated_traits;
-      for (const auto & category : neumann_bc.categories)
-      {
-        category_node = category_node->FindCategoryByType(category);
-        if (category_node == nullptr)
-        {
-          break;
-        }
-      }
-      if (category_node == nullptr)
-      {
-        std::cerr << "Invalid Neumann BC provided\n";
-        exit(1);
-      }
-      const auto * load_trait =
-          mt::GetCategoryModelTraitByType(category_node, neumann_bc.mt_name);
-      const auto * const_load_trait = mt::MTCast<mt::VectorMT>(load_trait);
-      const auto * time_function_load =
-          mt::MTCast<mt::VectorFunctionMT<1>>(load_trait);
-      if (const_load_trait != nullptr)
-      {
-        for (int i = 0; i < 3; ++i)
-        {
-          frc[i] = (*const_load_trait)(i);
-        }
-      }
-      else if (time_function_load != nullptr)
-      {
-        for (int i = 0; i < 3; ++i)
-        {
-          frc[i] = (*time_function_load)(i, T);
-        }
-      }
-      else
-      {
-        std::cerr << "Load must be either a scalar value, or function of time "
-                     "only.\n";
-        exit(1);
-      }
-    }
-  }
-
-  void NonlinearTissueStep::recoverSecondaryVariables(int /* unused load_step */)
-  {
-    /*
-    //#ifdef SCOREC
-    int rnk = -1;
-    MPI_Comm_rank(AMSI_COMM_SCALE, &rnk);
-    std::stringstream fnm;
-    fnm << amsi::fs->getResultsDir() << "/qlty.stp_" << load_step << ".rnk_"
-        << rnk << ".dat";
-    // analyze and print the quality of the elements
-    apf::Field* qfld = amsi::analyzeMeshQuality(apf_mesh, apf_primary_field);
-    std::ofstream file(fnm.str().c_str(), std::ofstream::out);
-    amsi::PrintField(qfld, file).run();
-    apf::destroyField(qfld);
-    */
-    // #endif
-  }
-
-  void NonlinearTissueStep::storeStrain(apf::MeshElement * me, double * strain)
-  {
-    apf::MeshEntity * m_ent = apf::getMeshEntity(me);
-    apf::Matrix3x3 eps(strain[0], strain[3], strain[5], strain[3], strain[1],
-                       strain[4], strain[5], strain[4], strain[2]);
-    apf::setMatrix(strn, m_ent, 0, eps);
-  }
-
-  void NonlinearTissueStep::storeStrain(apf::MeshElement * me, apf::Matrix3x3 eps)
-  {
-    apf::MeshEntity * m_ent = apf::getMeshEntity(me);
-    apf::setMatrix(strn, m_ent, 0, eps);
-  }
-
-  void NonlinearTissueStep::storeStress(apf::MeshElement * me, double * stress)
-  {
-    apf::MeshEntity * m_ent = apf::getMeshEntity(me);
-    apf::Matrix3x3 sigma(stress[0], stress[3], stress[5], stress[3], stress[1],
-                         stress[4], stress[5], stress[4], stress[2]);
-    apf::setMatrix(strs, m_ent, 0, sigma);
-  }
-
-  void NonlinearTissueStep::storeStress(apf::MeshElement * me, apf::Matrix3x3 eps)
-  {
-    apf::MeshEntity * m_ent = apf::getMeshEntity(me);
-    apf::setMatrix(strs, m_ent, 0, eps);
-  }
 }  // namespace mumfim

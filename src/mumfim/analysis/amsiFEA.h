@@ -7,7 +7,6 @@
 #include <list>
 #include <map>
 #include <vector>
-#include "amsiBoundaryConditionQuery.h"
 #include "amsiBoundaryConditions.h"
 #include "amsiLAS.h"
 #include "amsiMPI.h"

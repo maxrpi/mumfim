@@ -5,7 +5,6 @@
 #include <map>
 #include <string>
 #include "AnalysisStep.h"
-#include "mumfim/macroscale/ULMultiscaleHydrostaticPressureIntegrator.h"
 #include "mumfim/macroscale/ULMultiscaleIntegrator.h"
 #include "mumfim/microscale/MicroFOParams.h"
 namespace mumfim
@@ -177,10 +176,6 @@ namespace mumfim
     AssembleIntegratorIntoLAS(las, [this](apf::MeshEntity * me, int ip)
                               { return getIntegrator(me, ip); }, current_coords);
 
-    //AssembleIntegratorIntoLAS(las, [this](apf::MeshEntity * me, int)
-    //                          { return constitutives[apf_mesh->toModel(me)].get(); }, current_coords);
-    for (auto cnst = vol_cnst.begin(); cnst != vol_cnst.end(); cnst++)
-      (*cnst)->apply(las);
 #ifdef LOGRUN
     amsi::log(state) << load_step << ", " << iteration << ", " << MPI_Wtime()
                      << ", "
@@ -298,7 +293,6 @@ namespace mumfim
   }
   void MultiscaleTissueStep::recoverSecondaryVariables(int step)
   {
-    NonlinearTissueStep::recoverSecondaryVariables(step);
     fo_cplg.recvRVEStepData();
     // loop over all mesh regions
     apf::MeshIterator * it = apf_mesh->begin(analysis_dim);

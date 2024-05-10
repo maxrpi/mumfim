@@ -6,8 +6,6 @@
 #include <string>
 namespace amsi
 {
-  Iteration * buildLinearFEMIteration(FEAStep * f, LAS * l);
   void LinearSolver(FEAStep *,LAS*);
-  //void NewtonSolver(FEAStep*,LAS*,int,double,double,double&);
 }
 #endif
