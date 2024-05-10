@@ -14,9 +14,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/amsiAnalysisConfig.h.in
 set(analysis_src_files
         amsiAnalysis.cc
         amsiBoundaryConditions.cc
-        amsiBoundaryConditionQuery.cc
         amsiDeformation.cc
-        amsiFields.cc
         amsiFEA.cc
         amsiLinearElasticConstitutive.cc
         amsiNonlinearAnalysis.cc
