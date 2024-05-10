@@ -1,12 +1,13 @@
 #include "StiffnessVariation.h"
 #include <amsiCasters.h>
-#include <apfWrapper.h>
 #include <gmi.h>
 #include <math.h>  // std::sqrt()
 #include <model_traits/CategoryNode.h>
 #include <pumi.h>
 #include <memory>
 #include "ModelTraits.h"
+#include <iostream>
+#include <apfShape.h>
 namespace mumfim
 {
   // pass in the "stiffness gradient category node

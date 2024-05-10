@@ -27,7 +27,6 @@ set(analysis_src_files
         apfMeasure.cc
         apfMeshIterator.cc
         apfMeshUtil.cc
-        apfWrapper.cc
         apfLabelRegions.cc
         Solvers.cc
         ElementalSystem.cc

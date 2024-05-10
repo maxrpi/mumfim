@@ -4,7 +4,6 @@
 #include <amsiMultiscale.h>
 #include <apfFunctions.h>
 #include <apfNumbering.h>
-#include <apfWrapper.h>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
