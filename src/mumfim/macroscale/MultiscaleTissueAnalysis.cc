@@ -17,11 +17,6 @@
 #include "mumfim/exceptions.h"
 namespace mumfim
 {
-  void MultiscaleTissueIteration::iterate()
-  {
-    std::cerr<<"We shouldn't be calling the multiscale tissue iteration if code is working as expected\n";
-    std::abort();
-  }
   MultiscaleTissueAnalysis::MultiscaleTissueAnalysis(
       apf::Mesh * mesh,
       std::unique_ptr<mt::CategoryNode> analysis_case,

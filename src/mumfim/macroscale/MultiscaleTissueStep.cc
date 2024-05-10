@@ -293,7 +293,6 @@ namespace mumfim
   }
   void MultiscaleTissueStep::recoverSecondaryVariables(int step)
   {
-    NonlinearTissueStep::recoverSecondaryVariables(step);
     fo_cplg.recvRVEStepData();
     // loop over all mesh regions
     apf::MeshIterator * it = apf_mesh->begin(analysis_dim);

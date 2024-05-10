@@ -12,21 +12,6 @@
 #include "FEMAnalysis.h"
 namespace mumfim
 {
-  class MultiscaleTissueIteration : public amsi::Iteration
-  {
-    protected:
-    MultiscaleTissueStep * tssu;
-    amsi::LAS * las;
-    Iteration * fem_iter;
-
-    public:
-    MultiscaleTissueIteration(MultiscaleTissueStep * a, amsi::LAS * l)
-        : tssu(a), las(l), fem_iter(amsi::buildLinearFEMIteration(a, l))
-    {
-    }
-    ~MultiscaleTissueIteration() { delete fem_iter; }
-    void iterate();
-  };
   class MultiscaleTissueAnalysis : public FEMAnalysis
   {
     public:
