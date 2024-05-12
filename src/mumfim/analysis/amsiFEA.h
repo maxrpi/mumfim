@@ -156,9 +156,7 @@ namespace amsi {
 
     apf::Mesh * getMesh() { return apf_mesh; }
   };
-  void assembleMatrix(LAS* las, int rw_cnt, int* rw_nms, int cl_cnt,
-                      int* cl_nms, double* Ke);
-  void assembleVector(LAS* las, int rw_cnt, int* rw_nms, double* fe);
+
   template <typename NODE_TYPE>
   void FEAStep::AssembleDOFs(LAS* las, int num_elemental_dofs, int* dof_numbers,
                          const NODE_TYPE* node_values, double* Ke, double* fe,
@@ -179,11 +177,11 @@ namespace amsi {
             }
           }
         }
-        assembleVector(las, num_elemental_dofs, dof_numbers, &bf[0]);
+        las->AddToVector(num_elemental_dofs, dof_numbers, &bf[0]);
         delete[] bf;
       }
-      assembleMatrix(las, num_elemental_dofs, dof_numbers, num_elemental_dofs,
-                     dof_numbers, &Ke[0]);
+      las->AddToMatrix(num_elemental_dofs, dof_numbers, num_elemental_dofs,
+                       dof_numbers, &Ke[0]);
     }
     /// Modification of fe to correctly account for nonzero dirichlet boundary
     /// conditions
@@ -201,7 +199,7 @@ namespace amsi {
       fe[ii] = fe[ii] + dfe[ii];
     delete[] dirichletValue;
     delete[] dfe;
-    assembleVector(las, num_elemental_dofs, dof_numbers, &fe[0]);
+    las->AddToVector(num_elemental_dofs, dof_numbers, &fe[0]);
   }
 
   template <>
@@ -216,8 +214,8 @@ namespace amsi {
       throw mumfim::mumfim_error("Scalar does not handle case with !includes_body_force");
     }
 
-    assembleMatrix(las, num_elemental_dofs, dof_numbers, num_elemental_dofs,
-                    dof_numbers, &Ke[0]);
+    las->AddToMatrix(num_elemental_dofs, dof_numbers, num_elemental_dofs,
+                     dof_numbers, &Ke[0]);
 
     /// Modification of fe to correctly account for nonzero dirichlet boundary
     /// conditions
@@ -232,7 +230,7 @@ namespace amsi {
             dfe[ii] + Ke[ii * num_elemental_dofs + jj] * dirichletValue[ii];
     for (int ii = 0; ii < num_elemental_dofs; ii++)
       fe[ii] = fe[ii] + dfe[ii];
-    assembleVector(las, num_elemental_dofs, dof_numbers, &fe[0]);
+    las->AddToVector(num_elemental_dofs, dof_numbers, &fe[0]);
   }
 }  // namespace amsi
 #endif

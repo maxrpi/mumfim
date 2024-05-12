@@ -187,18 +187,4 @@ namespace amsi
     offset = first_local_dof;
   }
 
-  void assembleMatrix(LAS * las,
-                      int rw_cnt,
-                      int * rw_nms,
-                      int cl_cnt,
-                      int * cl_nms,
-                      double * Ke)
-  {
-    las->AddToMatrix(rw_cnt, rw_nms, cl_cnt, cl_nms, &Ke[0]);
-  }
-
-  void assembleVector(LAS * las, int rw_cnt, int * rw_nms, double * fe)
-  {
-    las->AddToVector(rw_cnt, rw_nms, &fe[0]);
-  }
 }  // namespace amsi
