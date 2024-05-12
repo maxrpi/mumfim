@@ -11,8 +11,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "AnalysisStep.h"
 #include "NeoHookeanIntegrator.h"
+#include "amsiFEA.h"
 #include "gmi.h"
 
 namespace mumfim
@@ -20,7 +20,7 @@ namespace mumfim
   NonlinearTissueStep::NonlinearTissueStep(apf::Mesh * mesh,
                                    const mt::CategoryNode & analysis_case,
                                    MPI_Comm cm)
-      : AnalysisStep(mesh, analysis_case, {}, {}, "macro", cm)
+      : amsi::FEAStep(mesh, analysis_case, {}, {}, "macro", cm)
       , constitutives()
       , dv_prev(0.0)
       , load_step(0)

@@ -6,13 +6,13 @@
 
 namespace mumfim
 {
- AnalysisStep * createStepper(
+ amsi::FEAStep * createStepper(
       apf::Mesh * mesh,
       const mt::CategoryNode & analysis_case,
       MPI_Comm com
   )
   {
-    AnalysisStep *stepper = nullptr;
+    amsi::FEAStep *stepper = nullptr;
 
     const auto * problem_definition =
         mt::GetPrimaryCategoryByType(&analysis_case, "problem definition");
@@ -52,14 +52,14 @@ namespace mumfim
     return stepper;
   }
 
-  AnalysisStep * createStepper(
+  amsi::FEAStep * createStepper(
       apf::Mesh * mesh,
       const mt::CategoryNode & analysis_case,
       const amsi::Multiscale & amsi_multiscale,
       MPI_Comm com
   )
   {
-    AnalysisStep *stepper = nullptr;
+    amsi::FEAStep *stepper = nullptr;
 
     const auto * problem_definition =
         mt::GetPrimaryCategoryByType(&analysis_case, "problem definition");

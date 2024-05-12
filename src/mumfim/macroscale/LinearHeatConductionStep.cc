@@ -11,8 +11,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "AnalysisStep.h"
 #include "LinearHeatIntegrator.h"
+#include "amsiFEA.h"
 #include "gmi.h"
 
 namespace mumfim
@@ -20,7 +20,7 @@ namespace mumfim
   LinearHeatConductionStep::LinearHeatConductionStep(apf::Mesh * mesh,
                                    const mt::CategoryNode & analysis_case,
                                    MPI_Comm comm_)
-      : AnalysisStep(mesh, analysis_case, {}, {}, "macro", comm_)
+      : amsi::FEAStep(mesh, analysis_case, {}, {}, "macro", comm_)
       , constitutives()
       , iteration(0)
   {

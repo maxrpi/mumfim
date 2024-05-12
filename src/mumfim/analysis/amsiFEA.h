@@ -1,16 +1,23 @@
 #ifndef AMSI_FEA_H_
 #define AMSI_FEA_H_
 #include <PCU.h>
+#include <apf.h>
+#include <apfMesh.h>
+#include <apfNumbering.h>
 #include <mpi.h>
+
 #include <cstring>  // memset
 #include <iostream>
 #include <list>
 #include <map>
 #include <vector>
+
+#include "ElementalSystem.h"
 #include "amsiBoundaryConditions.h"
 #include "amsiLAS.h"
 #include "amsiMPI.h"
 #include "model_traits/AssociatedModelTraits.h"
+#include "mumfim/analysis/amsiFEA.h"
 #include "mumfim/exceptions.h"
 namespace amsi {
   struct ModelDefinition {
@@ -57,20 +64,69 @@ namespace amsi {
     ModelDefinition solution_strategy;
     std::vector<DirichletBCEntry> dirichlet_bcs;
     std::vector<NeumannBCEntry> neumann_bcs;
-    public:
-    FEAStep(const mt::CategoryNode& mt, std::vector<DirichletBCEntry> dbc,
-        std::vector<NeumannBCEntry> nbc, const std::string& analysis_name = "",
-        MPI_Comm cm = AMSI_COMM_SCALE);
 
-    FEAStep(const ModelDefinition& problem_definition,
-        const ModelDefinition& solution_strategy,
-        const ModelDefinition& output,
-        std::vector<DirichletBCEntry> dbc,
-        std::vector<NeumannBCEntry> nbc, const std::string& analysis_name = "",
-        MPI_Comm cm = AMSI_COMM_SCALE);
-    virtual void Adapt() = 0;
-    virtual void ApplyBC_Dirichlet() = 0;
-    virtual void ApplyBC_Neumann(LAS*) = 0;
+    template <typename T>
+    void AssembleIntegratorIntoLAS(LAS * las,
+                                   T integrator,
+                                   apf::Field * coordinates = nullptr)
+    {
+      static_assert(std::is_invocable_r_v<ElementalSystem *, T,
+                                          apf::MeshEntity *, int>);
+      if (coordinates == nullptr)
+      {
+        coordinates = apf_mesh->getCoordinateField();
+      }
+      apf::MeshIterator * it = apf_mesh->begin(analysis_dim);
+      apf::MeshEntity * me = nullptr;
+      while ((me = apf_mesh->iterate(it)))
+      {
+        if (!apf_mesh->isOwned(me))
+        {
+          continue;
+        }
+        apf::MeshElement * mlm = apf::createMeshElement(coordinates, me);
+        auto * sys = std::invoke(integrator, me, 0);
+        apf::Element * elm = apf::createElement(sys->getField(), mlm);
+        sys->process(mlm);
+        apf::NewArray<apf::Vector3> dofs;
+        apf::getVectorNodes(elm, dofs);
+        apf::NewArray<int> ids;
+        apf::getElementNumbers(apf_primary_numbering, me, ids);
+        AssembleDOFs(las, sys->numElementalDOFs(), &ids[0], &dofs[0],
+                     &sys->getKe()(0, 0), &sys->getfe()(0),
+                     sys->includesBodyForces());
+        apf::destroyElement(elm);
+        apf::destroyMeshElement(mlm);
+      }
+      apf_mesh->end(it);
+    }
+
+    apf::Mesh * apf_mesh;
+    apf::Field * apf_primary_field;
+    apf::Field * apf_primary_delta_field;
+    apf::Numbering * apf_primary_numbering;
+    bool own_mesh;
+
+    public:
+    FEAStep(apf::Mesh * mesh,
+            const mt::CategoryNode & analysis_case,
+            std::vector<DirichletBCEntry> dbc,
+            std::vector<NeumannBCEntry> nbc,
+            const std::string & analysis_name = "",
+            MPI_Comm cm = AMSI_COMM_SCALE,
+            bool own_mesh = false);
+
+    FEAStep(apf::Mesh * mesh,
+            const ModelDefinition & problem_definition,
+            const ModelDefinition & solution_strategy,
+            const ModelDefinition & output,
+            std::vector<DirichletBCEntry> dbc,
+            std::vector<NeumannBCEntry> nbc,
+            const std::string & analysis_name = "",
+            MPI_Comm cm = AMSI_COMM_SCALE,
+            bool own_mesh = false);
+    ~FEAStep();
+
     virtual void Assemble(LAS*) = 0;
     void setSimulationTime(double t);
     template <typename NODE_TYPE>
@@ -78,10 +134,28 @@ namespace amsi {
                       const NODE_TYPE* node_values, double* Ke, double* fe,
                       bool includes_body_forces) const;
     virtual void GetDOFInfo(int& global, int& local, int& offset);
-    virtual void RenumberDOFs(){};
-    virtual void UpdateDOFs(const double* sol) = 0;
 
-    private:
+    virtual void RenumberDOFs();
+    virtual void UpdateDOFs(const double *);
+    [[nodiscard]] virtual apf::Field * getUField() = 0;
+
+    virtual void preRun() {}
+
+    virtual void step() {}
+
+    virtual void iter() {}
+
+    virtual void AcceptDOFs() {}
+
+    virtual void recoverSecondaryVariables(int) {}
+
+    virtual void computeInitGuess(LAS * las) {}
+
+    virtual void ApplyBC_Dirichlet();
+    virtual void ApplyBC_Neumann(LAS * las);
+    virtual void Adapt();
+
+    apf::Mesh * getMesh() { return apf_mesh; }
   };
   void assembleMatrix(LAS* las, int rw_cnt, int* rw_nms, int cl_cnt,
                       int* cl_nms, double* Ke);

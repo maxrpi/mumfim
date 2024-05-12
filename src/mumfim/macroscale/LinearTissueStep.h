@@ -1,10 +1,12 @@
 #ifndef MUMFIM_LINEARTISSUE_H_
 #define MUMFIM_LINEARTISSUE_H_
 #include <memory>
-#include "AnalysisStep.h"
+
+#include "amsiFEA.h"
+
 namespace mumfim
 {
-  class LinearTissueStep : public AnalysisStep
+  class LinearTissueStep : public amsi::FEAStep
   {
     protected:
     std::map<int, std::unique_ptr<amsi::ElementalSystem> > constitutives;

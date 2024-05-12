@@ -2,20 +2,22 @@
 #define MUMFIM_LINEAR_HEAT_CONDUCTION_STEP_H_
 // amsi
 #include <Solvers.h>
-#include <Solvers.h>
 #include <amsiAnalysis.h>
 #include <amsiMultiscale.h>
 #include <amsiUtil.h>
 #include <apfFunctions.h>
+#include <model_traits/CategoryNode.h>
+
 #include <iostream>
 #include <list>
 #include <string>
 #include <vector>
-#include <model_traits/CategoryNode.h>
-#include "AnalysisStep.h"
+
+#include "amsiFEA.h"
+
 namespace mumfim
 {
-  class LinearHeatConductionStep : public AnalysisStep
+  class LinearHeatConductionStep : public amsi::FEAStep
   {
     protected:
     std::map<apf::ModelEntity*, std::unique_ptr<amsi::ElementalSystem>> constitutives;

@@ -30,7 +30,7 @@ namespace mumfim
     int stp;
     int mx_stp;
     int iteration{0};
-    AnalysisStep * analysis_step_;
+    amsi::FEAStep * analysis_step_;
     amsi::LAS * las;
     bool completed;
     // log filenames

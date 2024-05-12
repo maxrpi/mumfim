@@ -4,13 +4,14 @@
 #include <apfFunctions.h>
 #include <gmi.h>
 
-#include "AnalysisStep.h"
+#include "amsiFEA.h"
+
 namespace mumfim
 {
   LinearTissueStep::LinearTissueStep(apf::Mesh * mesh,
                             const mt::CategoryNode & analysis_case,
                             MPI_Comm cm)
-      : AnalysisStep(mesh,
+      : amsi::FEAStep(mesh,
                    analysis_case,
                    {},
                    {},

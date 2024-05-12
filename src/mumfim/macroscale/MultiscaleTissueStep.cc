@@ -1,12 +1,16 @@
 #include "MultiscaleTissueStep.h"
+
 #include <amsiControlService.h>  // amsi
 #include <amsiDetectOscillation.h>
 #include <model_traits/AssociatedModelTraits.h>
+
 #include <map>
 #include <string>
-#include "AnalysisStep.h"
+
+#include "amsiFEA.h"
 #include "mumfim/macroscale/ULMultiscaleIntegrator.h"
 #include "mumfim/microscale/MicroFOParams.h"
+
 namespace mumfim
 {
   struct StochasticFieldData
@@ -171,7 +175,7 @@ namespace mumfim
                      << ", "
                      << "start_fea" << std::endl;
 #endif
-    AnalysisStep::ApplyBC_Neumann(las);
+    ApplyBC_Neumann(las);
     // wrap getIntegrator in lambda because invoke
     AssembleIntegratorIntoLAS(las, [this](apf::MeshEntity * me, int ip)
                               { return getIntegrator(me, ip); }, current_coords);

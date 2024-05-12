@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "AnalysisStep.h"
+#include "amsiFEA.h"
 #include "mumfim/exceptions.h"
 #include "mumfim/macroscale/ModelTraits.h"
 #include "mumfim/macroscale/PetscSNES.h"

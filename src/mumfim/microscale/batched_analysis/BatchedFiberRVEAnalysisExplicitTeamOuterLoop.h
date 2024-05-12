@@ -1,6 +1,7 @@
 #ifndef MUMFIM_BATCHED_FIBER_RVE_ANALYSIS_EXPLICIT_TEAM_OUTER_LOOP_H
 #define MUMFIM_BATCHED_FIBER_RVE_ANALYSIS_EXPLICIT_TEAM_OUTER_LOOP_H
 #include "BatchedFiberRVEAnalysisExplicitBase.h"
+#include "amsiFEA.h"
 #define UPDATE_FREQ 100
 
 namespace mumfim

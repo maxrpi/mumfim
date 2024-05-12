@@ -2,16 +2,16 @@
 #define MUMFIM_STEPPER_FACTORY_H_
 #include <amsiNonlinearAnalysis.h>
 #include <amsiMultiscale.h>
-#include "AnalysisStep.h"
+#include "amsiFEA.h"
 namespace mumfim
 {
-   AnalysisStep * createStepper(
+   amsi::FEAStep* createStepper(
       apf::Mesh * mesh,
       const mt::CategoryNode & analysis_case,
       MPI_Comm comm
     );
 
-    AnalysisStep * createStepper(
+    amsi::FEAStep * createStepper(
       apf::Mesh * mesh,
       const mt::CategoryNode & analysis_case,
       const amsi::Multiscale & amsi_multiscale,

@@ -7,21 +7,23 @@
 #include <mumfim/microscale/RVE.h>
 // amsi
 #include <Solvers.h>
-#include <Solvers.h>
 #include <amsiAnalysis.h>
 #include <amsiMultiscale.h>
 #include <amsiUtil.h>
 #include <apfFunctions.h>
+#include <model_traits/CategoryNode.h>
+
 #include <iostream>
 #include <list>
 #include <string>
 #include <vector>
-#include <model_traits/CategoryNode.h>
-#include "AnalysisStep.h"
+
+#include "amsiFEA.h"
+
 namespace mumfim
 {
   class CurrentCoordFunc;
-  class NonlinearTissueStep : public AnalysisStep
+  class NonlinearTissueStep : public amsi::FEAStep
   {
     protected:
     amsi::XpYFunc * xpyfnc;
