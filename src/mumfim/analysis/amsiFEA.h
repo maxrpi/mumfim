@@ -125,8 +125,7 @@ namespace amsi {
             const std::string & analysis_name = "",
             MPI_Comm cm = AMSI_COMM_SCALE,
             bool own_mesh = false);
-    ~FEAStep();
-
+    virtual ~FEAStep();
     virtual void Assemble(LAS*) = 0;
     void setSimulationTime(double t);
     template <typename NODE_TYPE>
