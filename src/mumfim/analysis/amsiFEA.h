@@ -64,42 +64,18 @@ namespace amsi {
     ModelDefinition solution_strategy;
     std::vector<DirichletBCEntry> dirichlet_bcs;
     std::vector<NeumannBCEntry> neumann_bcs;
+    /**
+    * this function is a hook for subclasses to specify what elemental system
+    * should be used within each mesh entity
+    * \param ent current mesh entity
+    * \param integration_point current integration point
+    */
+    [[nodiscard]] virtual amsi::ElementalSystem * getIntegrator(
+        apf::MeshEntity * ent,
+        int integration_point) = 0;
 
-    template <typename T>
     void AssembleIntegratorIntoLAS(LAS * las,
-                                   T integrator,
-                                   apf::Field * coordinates = nullptr)
-    {
-      static_assert(std::is_invocable_r_v<ElementalSystem *, T,
-                                          apf::MeshEntity *, int>);
-      if (coordinates == nullptr)
-      {
-        coordinates = apf_mesh->getCoordinateField();
-      }
-      apf::MeshIterator * it = apf_mesh->begin(analysis_dim);
-      apf::MeshEntity * me = nullptr;
-      while ((me = apf_mesh->iterate(it)))
-      {
-        if (!apf_mesh->isOwned(me))
-        {
-          continue;
-        }
-        apf::MeshElement * mlm = apf::createMeshElement(coordinates, me);
-        auto * sys = std::invoke(integrator, me, 0);
-        apf::Element * elm = apf::createElement(sys->getField(), mlm);
-        sys->process(mlm);
-        apf::NewArray<apf::Vector3> dofs;
-        apf::getVectorNodes(elm, dofs);
-        apf::NewArray<int> ids;
-        apf::getElementNumbers(apf_primary_numbering, me, ids);
-        AssembleDOFs(las, sys->numElementalDOFs(), &ids[0], &dofs[0],
-                     &sys->getKe()(0, 0), &sys->getfe()(0),
-                     sys->includesBodyForces());
-        apf::destroyElement(elm);
-        apf::destroyMeshElement(mlm);
-      }
-      apf_mesh->end(it);
-    }
+                                   apf::Field * coordinates = nullptr);
 
     apf::Mesh * apf_mesh;
     apf::Field * apf_primary_field;

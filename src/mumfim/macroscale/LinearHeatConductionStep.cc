@@ -112,12 +112,7 @@ namespace mumfim
   void LinearHeatConductionStep::Assemble(amsi::LAS * las)
   {
     ApplyBC_Neumann(las);
-    AssembleIntegratorIntoLAS(
-        las,
-        [this](apf::MeshEntity * me, int) {
-          auto tmp = constitutives[apf_mesh->toModel(me)].get();
-          return tmp;
-        });
+    AssembleIntegratorIntoLAS(las);
   }
 
 
@@ -128,6 +123,13 @@ namespace mumfim
     LinearSolver(this, las);
     apf::writeASCIIVtkFiles("foo", this->apf_mesh);
     las->iter();
+  }
+
+  amsi::ElementalSystem * LinearHeatConductionStep::getIntegrator(
+      apf::MeshEntity * mesh_entity,
+      int /*unused integration_point */)
+  {
+    return constitutives[apf_mesh->toModel(mesh_entity)].get();
   }
   /*
   void LinearHeatConductionStep::step()

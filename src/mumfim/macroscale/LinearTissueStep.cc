@@ -104,11 +104,14 @@ namespace mumfim
     // coordinate field. This is unlike what's used in NonlinearTissueStep and
     // MultiscaleTissueStep
     ApplyBC_Neumann(las);
-    AssembleIntegratorIntoLAS(
-        las,
-        [this](apf::MeshEntity * me, int) {
-          return constitutives[apf_mesh->getModelTag(apf_mesh->toModel(me))]
-              .get();
-        });
+    AssembleIntegratorIntoLAS(las);
+  }
+
+  amsi::ElementalSystem * LinearTissueStep::getIntegrator(
+      apf::MeshEntity * mesh_entity,
+      int /*unused integration_point */)
+  {
+    return constitutives[apf_mesh->getModelTag(apf_mesh->toModel(mesh_entity))]
+        .get();
   }
 }  // namespace mumfim

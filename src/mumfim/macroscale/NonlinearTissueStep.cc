@@ -211,13 +211,7 @@ namespace mumfim
     ApplyBC_Neumann(las);
     // custom iterator would be perfect for switching for multiscale version
     // FIXME !!! here createMeshELement is using the mesh (Original coords),
-    // BUT Constitutives Should be set to Use the deformed coords for
-    // consistency with the multiscale analysis
-    AssembleIntegratorIntoLAS(
-        las,
-        [this](apf::MeshEntity * me, int)
-        { return constitutives[apf_mesh->toModel(me)].get(); },
-        current_coords);
+    AssembleIntegratorIntoLAS(las, current_coords);
   }
 
   void NonlinearTissueStep::UpdateDOFs(const double * sol)
@@ -247,6 +241,13 @@ namespace mumfim
 
     apf::synchronize(apf_primary_field);
     apf::synchronize(delta_u);
+  }
+
+  amsi::ElementalSystem * NonlinearTissueStep::getIntegrator(
+      apf::MeshEntity * mesh_entity,
+      int /*unused integration_point */)
+  {
+        return constitutives[apf_mesh->toModel(mesh_entity)].get();
   }
 
 }  // namespace mumfim

@@ -17,6 +17,10 @@ namespace mumfim
     virtual void UpdateDOFs(const double * sol) override;
     virtual void Assemble(amsi::LAS * las) override;
     [[nodiscard]] apf::Field * getUField() final { return apf_primary_field; }
+
+    [[nodiscard]] amsi::ElementalSystem * getIntegrator(
+        apf::MeshEntity * mesh_entity,
+        int integration_point) override;
   };
 }  // namespace mumfim
 #endif

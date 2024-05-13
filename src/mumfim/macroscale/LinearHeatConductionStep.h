@@ -26,6 +26,11 @@ namespace mumfim
     apf::Field * kappa;
     apf::Field * sources;
     int iteration;
+
+    [[nodiscard]] amsi::ElementalSystem * getIntegrator(
+        apf::MeshEntity * ent,
+        int integration_point) override;
+
     public:
     LinearHeatConductionStep(apf::Mesh* mesh, const mt::CategoryNode& analysis_case,
                     MPI_Comm comm_ = AMSI_COMM_SCALE);
@@ -43,6 +48,7 @@ namespace mumfim
     apf::Field* getUField() { return apf_primary_field; }
     //apf::Mesh* getMesh() { return apf_mesh; }
     //void getFluxOn(apf::ModelEntity* ent, double* frc);
+
   };
 
 

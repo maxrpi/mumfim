@@ -186,5 +186,37 @@ namespace amsi
     local = local_dof_count;
     offset = first_local_dof;
   }
+  void FEAStep::AssembleIntegratorIntoLAS(LAS * las,
+                                 apf::Field * coordinates)
+
+  {
+    if (coordinates == nullptr)
+    {
+      coordinates = apf_mesh->getCoordinateField();
+    }
+    apf::MeshIterator * it = apf_mesh->begin(analysis_dim);
+    apf::MeshEntity * me = nullptr;
+    while ((me = apf_mesh->iterate(it)))
+    {
+      if (!apf_mesh->isOwned(me))
+      {
+        continue;
+      }
+      apf::MeshElement * mlm = apf::createMeshElement(coordinates, me);
+      auto* sys = getIntegrator(me, 0);
+      apf::Element * elm = apf::createElement(sys->getField(), mlm);
+      sys->process(mlm);
+      apf::NewArray<apf::Vector3> dofs;
+      apf::getVectorNodes(elm, dofs);
+      apf::NewArray<int> ids;
+      apf::getElementNumbers(apf_primary_numbering, me, ids);
+      AssembleDOFs(las, sys->numElementalDOFs(), &ids[0], &dofs[0],
+                   &sys->getKe()(0, 0), &sys->getfe()(0),
+                   sys->includesBodyForces());
+      apf::destroyElement(elm);
+      apf::destroyMeshElement(mlm);
+    }
+    apf_mesh->end(it);
+  }
 
 }  // namespace amsi

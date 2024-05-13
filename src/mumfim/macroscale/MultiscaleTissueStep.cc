@@ -176,10 +176,7 @@ namespace mumfim
                      << "start_fea" << std::endl;
 #endif
     ApplyBC_Neumann(las);
-    // wrap getIntegrator in lambda because invoke
-    AssembleIntegratorIntoLAS(las, [this](apf::MeshEntity * me, int ip)
-                              { return getIntegrator(me, ip); }, current_coords);
-
+    AssembleIntegratorIntoLAS(las, current_coords);
 #ifdef LOGRUN
     amsi::log(state) << load_step << ", " << iteration << ", " << MPI_Wtime()
                      << ", "

@@ -44,6 +44,11 @@ namespace mumfim
     int load_step;
     int iteration;
     const mt::CategoryNode & _analysis_case;
+
+    [[nodiscard]] amsi::ElementalSystem * getIntegrator(
+        apf::MeshEntity * ent,
+        int integration_point) override;
+
     public:
     NonlinearTissueStep(apf::Mesh* mesh, const mt::CategoryNode& analysis_case,
                     MPI_Comm cm = AMSI_COMM_SCALE);

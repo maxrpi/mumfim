@@ -57,7 +57,7 @@ namespace mumfim
     size_t m2M_id;
     std::vector<std::string> rve_dirs;
     std::vector<int> rve_dir_cnts;
-    amsi::ElementalSystem * getIntegrator(apf::MeshEntity * me, int ii);
+    amsi::ElementalSystem * getIntegrator(apf::MeshEntity * me, int ii) override;
     template <typename O>
     void serializeRVEData(O o);
     template <typename O1, typename O2, typename O3, typename O4, typename O5>
