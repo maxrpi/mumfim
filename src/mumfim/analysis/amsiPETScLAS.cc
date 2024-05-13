@@ -79,7 +79,10 @@ namespace amsi
   {
     MatSetValues(A,1,&row,1,&col,&value,ADD_VALUES);
   }
-  void PetscLAS::AddToMatrix(int num_rows, int * rows, int num_cols, int * cols, double * values)
+  void PetscLAS::AddToMatrix(int num_rows,
+                             const int * rows, int num_cols,
+                             const int * cols,
+                             const double * values)
   {
     MatSetValues(A,num_rows,rows,num_cols,cols,values,ADD_VALUES);
   }
@@ -102,7 +105,9 @@ namespace amsi
     VecSetValue(b_i,row,static_cast<PetscScalar>(value),ADD_VALUES);
     b_assembled = false;
   }
-  void PetscLAS::AddToVector(int num_rows, int * rows, double * values)
+  void PetscLAS::AddToVector(int num_rows,
+                             const int * rows,
+                             const double * values)
   {
     if(!b_addMode)
     {
@@ -110,7 +115,7 @@ namespace amsi
       VecAssemblyEnd(b_i);
       b_addMode = true;
     }
-    VecSetValues(b_i,num_rows,rows,static_cast<PetscScalar*>(values),ADD_VALUES);
+    VecSetValues(b_i,num_rows,rows,static_cast<const PetscScalar*>(values),ADD_VALUES);
     b_assembled = false;
   }
   /**

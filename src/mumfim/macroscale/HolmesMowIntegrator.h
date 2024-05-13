@@ -14,10 +14,11 @@ namespace mumfim
   public:
   HolmesMowIntegrator(NonlinearTissueStep * n,
                       apf::Field * field,
+                      apf::Numbering* numbering,
                       double shear_modulus,
                       double poisson_ratio,
                       int o)
-    : ElementalSystem(field,o)
+    : ElementalSystem(field, numbering, o)
       , current_integration_point(0)
       , analysis(n)
       , dim(0)

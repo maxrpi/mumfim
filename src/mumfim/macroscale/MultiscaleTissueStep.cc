@@ -116,7 +116,7 @@ namespace mumfim
     ornt_3D = apf::createIPField(apf_mesh, "ornt_tens_3D", apf::MATRIX, 1);
     ornt_2D = apf::createIPField(apf_mesh, "ornt_tens_2D", apf::MATRIX, 1);
     mltscl = new ULMultiscaleIntegrator(&fo_cplg, microscale_strain, microscale_stress, apf_primary_field,
-                                        microscale_dfm_grd, 1,minimum_stiffness);
+                                        microscale_dfm_grd, apf_primary_numbering, 1,minimum_stiffness);
     M2m_id =
         amsi::getRelationID(multiscale_.getMultiscaleManager(),
                             multiscale_.getScaleManager(), "macro", "micro_fo");

@@ -3,6 +3,7 @@
 #include <mumfim/macroscale/UpdatedLagrangianMaterialIntegrator.h>
 #include <catch2/catch.hpp>
 #include "TestSupport.h"
+#include <apfNumbering.h>
 using test::compare_dynamic_matrices;
 using test::compare_dynamic_vectors;
 
@@ -23,6 +24,8 @@ TEST_CASE("Compare UL Integrators")
   apf::zeroField(strn);
   auto * dfm_grd = apf::createIPField(box_mesh, "F", apf::MATRIX, 1);
   apf::zeroField(dfm_grd);
+  auto* numbering = apf::createNumbering(displacement);
+  NaiveOrder(numbering);
   // set the mesh to have some random displacements
   auto * it = box_mesh->begin(0);
   while (auto * entity = box_mesh->iterate(it))
@@ -37,15 +40,15 @@ TEST_CASE("Compare UL Integrators")
   constexpr double poissons_ratio = 0.33;
   // create Neohookean integrator
   mumfim::NeoHookeanIntegrator neohookean(displacement, dfm_grd, current_coords,
-                                          strs, strn, youngs_modulus, poissons_ratio,
-                                          1);
+                                          strs, strn, numbering, youngs_modulus,
+                                          poissons_ratio, 1);
   // UpdatedLagrangean with NeohookeanMaterial
   mumfim::UpdatedLagrangianMaterialIntegrator updated_lagrangian(
       [=](apf::Matrix3x3 F, apf::MeshEntity *, int)
       {
         auto shear_modulus = youngs_modulus / (2.0 * (1.0 + poissons_ratio));
         return mumfim::NeohookeanMaterial(shear_modulus, poissons_ratio, F); },
-      strn, strs, displacement, dfm_grd, 1);
+      strn, strs, displacement, dfm_grd, numbering, 1);
   // process mesh
   it = box_mesh->begin(3);
   while(apf::MeshEntity * ent = box_mesh->iterate(it)) {

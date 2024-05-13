@@ -15,13 +15,17 @@ namespace amsi
     /// add an element val at given row and column in the system
     virtual void AddToMatrix(int row, int col, double value ) = 0;
     /// add a matrix of values to specific locations in the global system, useful for adding elemental system's contributions
-    virtual void AddToMatrix(int num_row, int * rows,
-                             int num_col, int * cols,
-                             double * values) = 0;
+    virtual void AddToMatrix(int num_row,
+                             const int * rows,
+                             int num_col,
+                             const int * cols,
+                             const double * values) = 0;
     /// add an element in the right hand side
     virtual void AddToVector(int row, double value) = 0;
     /// add multiple elements to the right hand side
-    virtual void AddToVector(int num_rows, int * rows, double * values) = 0;
+    virtual void AddToVector(int num_rows,
+                             const int * rows,
+                             const double * values) = 0;
     /// solve the system
     virtual void solve () = 0;
     /// zero the system

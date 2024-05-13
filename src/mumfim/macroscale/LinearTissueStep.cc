@@ -85,7 +85,7 @@ namespace mumfim
         exit(1);
       }
       constitutives[tag] = std::make_unique<amsi::LinearElasticIntegrator>(
-          apf_primary_field, 1, (*youngs_modulus)(), (*poisson_ratio)());
+          apf_primary_field, apf_primary_numbering, 1, (*youngs_modulus)(), (*poisson_ratio)());
     }
     gmi_end(gmodel, it);
   }

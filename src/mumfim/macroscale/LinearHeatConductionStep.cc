@@ -79,7 +79,8 @@ namespace mumfim
         MPI_Abort(AMSI_COMM_WORLD, 1);
       }
       constitutives[reinterpret_cast<apf::ModelEntity *>(gent)] =
-          std::make_unique<LinearHeatIntegrator>(apf_primary_field, kappa_r);
+          std::make_unique<LinearHeatIntegrator>(
+              apf_primary_field, apf_primary_numbering, kappa_r);
     }
     gmi_end(gmodel, it);
     neumann_bcs.push_back(

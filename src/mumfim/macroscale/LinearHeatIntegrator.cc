@@ -30,16 +30,16 @@ namespace mumfim
     return K;
   }
 
-  LinearHeatIntegrator::LinearHeatIntegrator(apf::Field * temperature, apf::Matrix3x3 * kappa)
-    : amsi::ElementalSystem(temperature,1)
+  LinearHeatIntegrator::LinearHeatIntegrator(apf::Field * temperature, apf::Numbering* numbering, apf::Matrix3x3 * kappa)
+    : amsi::ElementalSystem(temperature,numbering, 1)
     , T_(temperature)
     , D(apf::fromMatrix(*kappa))
   {
     ;
   }
 
-  LinearHeatIntegrator::LinearHeatIntegrator(apf::Field * temperature, apf::Field * kappa)
-    : amsi::ElementalSystem(temperature,1)
+  LinearHeatIntegrator::LinearHeatIntegrator(apf::Field * temperature,apf::Numbering* numbering, apf::Field * kappa)
+    : amsi::ElementalSystem(temperature,numbering, 1)
     , T_(temperature)
     , K_(kappa)
   {
@@ -62,7 +62,6 @@ namespace mumfim
     // Using TJHughes, pp 68-70, add nonhomogenous part later
     // fe holds the residual vector, because of the incremental formulation
     apf::NewArray<double> Na; apf::getShapeValues(e, p, Na);
-    apf::NewArray<double> nodalTheta; apf::getScalarNodes(e, nodalTheta);
     apf::NewArray<apf::Vector3> Ba; apf::getShapeGrads(e, p, Ba);
 
     apf::DynamicMatrix B(3, nenodes);
@@ -74,7 +73,7 @@ namespace mumfim
       B(0, i) = BT(i, 0) = Ba[i][0];
       B(1, i) = BT(i, 1) = Ba[i][1];
       B(2, i) = BT(i, 2) = Ba[i][2];
-      Theta(i) = nodalTheta[i] * Na[i];
+      Theta(i) = field_values_[i] * Na[i];
     }
 
     apf::DynamicMatrix BT_D_B(nenodes,nenodes);

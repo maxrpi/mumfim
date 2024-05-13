@@ -8,6 +8,7 @@ namespace amsi
   {
   public:
     LinearElasticIntegrator(apf::Field * field,
+                            apf::Numbering* numbering,
                             int o,
                             double E,
                             double v);

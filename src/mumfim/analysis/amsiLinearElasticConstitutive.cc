@@ -30,8 +30,8 @@ namespace amsi
     result(5,5) = mu;
     return result;
   }
-  LinearElasticIntegrator::LinearElasticIntegrator(apf::Field * field, int o, double E, double v)
-    : ElementalSystem(field,o)
+  LinearElasticIntegrator::LinearElasticIntegrator(apf::Field * field, apf::Numbering* numbering, int o, double E, double v)
+    : ElementalSystem(field, numbering, o)
     , C(isotropicLinearElasticityTensor(E,v))
   {
     fs = apf::getShape(f);

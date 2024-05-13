@@ -26,10 +26,11 @@ namespace mumfim
                          apf::Field * current_coords,
                          apf::Field * cauchy_stress_field,
                          apf::Field * green_lagrange_strain_field,
+                         apf::Numbering* numbering,
                          double youngs_modulus,
                          double poisson_ratio,
                          int o)
-        : ElementalSystem(displacements, o)
+        : ElementalSystem(displacements, numbering, o)
         , current_integration_point(0)
         , dim(0)
         , dfm_grd_fld(dfm_grd)

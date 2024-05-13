@@ -23,8 +23,9 @@ namespace mumfim
                                         apf::Field * strs,
                                         apf::Field * u,
                                         apf::Field * dfm_grd,
+                                        apf::Numbering* numbering,
                                         int o)
-        : ElementalSystem(u, o)
+        : ElementalSystem(u, numbering, o)
         , current_integration_point(0)
         , strain_field(strn)
         , stress_field(strs)

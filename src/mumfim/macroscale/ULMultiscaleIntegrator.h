@@ -20,9 +20,10 @@ namespace mumfim
                            apf::Field * strs,
                            apf::Field * u,
                            apf::Field * dfm_grd,
+                           apf::Numbering* numbering,
                            int o,
                            double minimum_stiffness)
-        : ElementalSystem(u, o)
+        : ElementalSystem(u, numbering, o)
         , current_integration_point(0)
         , coupling(r)
         , strain_field(strn)

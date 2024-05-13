@@ -59,8 +59,8 @@ namespace amsi {
     double vol;
 
     public:
-    MeasureDisplaced(apf::Field* field, int o)
-        : ElementalSystem(field, o)
+    MeasureDisplaced(apf::Field* field, apf::Numbering* numbering, int o)
+        : ElementalSystem(field, numbering, o)
         , dim(apf::getMesh(field)->getDimension())
         , ent_dim(-1)
         , fs(NULL)
@@ -119,8 +119,8 @@ namespace amsi {
   };
   class MeasureDisplacedFromSurf : public amsi::ElementalSystem {
     public:
-    MeasureDisplacedFromSurf(apf::Field* field, int o, int normal_dir)
-        : ElementalSystem(field, o), dim(0), vol(0), norm_dir(normal_dir)
+    MeasureDisplacedFromSurf(apf::Field* field, apf::Numbering* numbering, int o, int normal_dir)
+        : ElementalSystem(field, numbering, o), dim(0), vol(0), norm_dir(normal_dir)
     {
     }
     void inElement(apf::MeshElement* me)
@@ -196,10 +196,13 @@ namespace amsi {
     vol = amsi::comm_sum(vol);
     return vol;
   }
-  double measureDisplacedModelEntity(apf::ModelEntity* mdl_ent, apf::Field* u)
+
+  double measureDisplacedModelEntity(apf::ModelEntity * mdl_ent,
+                                     apf::Field * u,
+                                     apf::Numbering * numbering)
   {
     double vol = 0.0;
-    MeasureDisplaced elvol(u, 1);
+    MeasureDisplaced elvol(u, numbering, 1);
     apf::Mesh* msh = apf::getMesh(u);
     int dim = msh->getModelType(mdl_ent);
     apf::MeshEntity* ent;
@@ -217,10 +220,13 @@ namespace amsi {
     vol = amsi::comm_sum(vol);
     return vol;
   }
-  double measureDisplacedMeshEntity(apf::MeshEntity* ent, apf::Field* u)
+
+  double measureDisplacedMeshEntity(apf::MeshEntity * ent,
+                                    apf::Field * u,
+                                    apf::Numbering * numbering)
   {
     // todo : derive integration order from field order
-    MeasureDisplaced elemental_volume(u, 1);
+    MeasureDisplaced elemental_volume(u, numbering, 1);
     apf::Mesh* msh = apf::getMesh(u);
     apf::MeshElement* mlm = apf::createMeshElement(msh, ent);
     elemental_volume.process(mlm);
@@ -228,11 +234,14 @@ namespace amsi {
     apf::destroyMeshElement(mlm);
     return vol;
   }
-  double measureDisplacedMeshEntity_greens(apf::MeshEntity* ent, apf::Field* u,
-                                           int norm_dir)
+
+  double measureDisplacedMeshEntity_greens(apf::MeshEntity * ent,
+                                           apf::Field * u,
+                                           int norm_dir,
+                                           apf::Numbering * numbering)
   {
     // todo : derive integration order from field order
-    MeasureDisplacedFromSurf elemental_volume(u, 1, norm_dir);
+    MeasureDisplacedFromSurf elemental_volume(u, numbering, 1, norm_dir);
     apf::Mesh* msh = apf::getMesh(u);
     apf::MeshElement* mlm = apf::createMeshElement(msh, ent);
     elemental_volume.process(mlm);
@@ -254,7 +263,7 @@ namespace amsi {
         if (to_compare == mdl_ent) {
           int sd = side(mdl_ent, msh, ent);
           // assert(sd == 1);
-          vol += measureDisplacedMeshEntity_greens(ent, u, sd);
+          vol += measureDisplacedMeshEntity_greens(ent, u, sd, nullptr);
         }
       }
     }

@@ -7,7 +7,7 @@ namespace amsi
   {
     double v = 0.0;
     for(auto i = b; i != e; ++i)
-      v += measureDisplacedModelEntity(*i,u);
+      v += measureDisplacedModelEntity(*i, u, nullptr);
     return v;
   }
 }

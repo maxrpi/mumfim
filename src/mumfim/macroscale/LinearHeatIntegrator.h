@@ -14,8 +14,8 @@ namespace mumfim{
   apf::Matrix3x3 * getFullKappa(double xx, double yy, double zz,
                                   double xy, double yz, double zx);
   public:
-    LinearHeatIntegrator(apf::Field *T, apf::Field * K);
-    LinearHeatIntegrator(apf::Field *T, apf::Matrix3x3 * K_r); // Piecewise constant Kappa
+    LinearHeatIntegrator(apf::Field *T, apf::Numbering* numbering, apf::Field * K);
+    LinearHeatIntegrator(apf::Field *T, apf::Numbering* numbering, apf::Matrix3x3 * K_r); // Piecewise constant Kappa
     void inElement(apf::MeshElement *me);
     bool includesBodyForces() final { return true; }
     void atPoint(apf::Vector3 const &p,
