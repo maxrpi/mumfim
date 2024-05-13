@@ -186,6 +186,84 @@ namespace amsi
     local = local_dof_count;
     offset = first_local_dof;
   }
+
+  template <typename NODE_TYPE>
+  static void AssembleDOFs(LAS* las, int num_elemental_dofs, int* dof_numbers,
+                             const NODE_TYPE* node_values, double* Ke, double* fe,
+                             bool includes_body_forces, int analysis_dim)
+  {
+    if (Ke != NULL) {
+      if (!includes_body_forces) {
+        double* bf = new double[num_elemental_dofs]();
+        for (int ii = 0; ii < num_elemental_dofs; ii++) {
+          const int& global_i = dof_numbers[ii];
+          // this is the isFixed function from apfFunctions
+          // which is different from the sim query is fixed function!
+          if (!isFixed(global_i)) {
+            for (int jj = 0; jj < num_elemental_dofs; jj++) {
+              const double& val = Ke[ii * num_elemental_dofs + jj];
+              double j_val = node_values[jj / analysis_dim][jj % analysis_dim];
+              if (j_val != 0.0) bf[ii] += -val * j_val;
+            }
+          }
+        }
+        las->AddToVector(num_elemental_dofs, dof_numbers, &bf[0]);
+        delete[] bf;
+      }
+      las->AddToMatrix(num_elemental_dofs, dof_numbers, num_elemental_dofs,
+                       dof_numbers, &Ke[0]);
+    }
+    /// Modification of fe to correctly account for nonzero dirichlet boundary
+    /// conditions
+    double* dirichletValue = new double[num_elemental_dofs]();
+    for (int ii = 0; ii < num_elemental_dofs; ii++) {
+      if (dof_numbers[ii] < 0)
+        dirichletValue[ii] = node_values[ii / analysis_dim][ii % analysis_dim];
+    }
+    double* dfe = new double[num_elemental_dofs]();
+    for (int ii = 0; ii < num_elemental_dofs; ii++)
+      for (int jj = 0; jj < num_elemental_dofs; jj++)
+        dfe[ii] =
+            dfe[ii] + Ke[ii * num_elemental_dofs + jj] * dirichletValue[ii];
+    for (int ii = 0; ii < num_elemental_dofs; ii++)
+      fe[ii] = fe[ii] + dfe[ii];
+    delete[] dirichletValue;
+    delete[] dfe;
+    las->AddToVector(num_elemental_dofs, dof_numbers, &fe[0]);
+  }
+
+  template <>
+  void AssembleDOFs<double>(LAS* las, int num_elemental_dofs, int* dof_numbers,
+                                            const double* node_values, double* Ke, double* fe,
+                                            bool includes_body_forces, int analysis_dim)
+  {
+    if (Ke == NULL) {
+      throw mumfim::mumfim_error("Ke is null going into AssembleDOFs");
+    }
+    if (!includes_body_forces) {
+      throw mumfim::mumfim_error("Scalar does not handle case with !includes_body_force");
+    }
+
+    las->AddToMatrix(num_elemental_dofs, dof_numbers, num_elemental_dofs,
+                     dof_numbers, &Ke[0]);
+
+    /// Modification of fe to correctly account for nonzero dirichlet boundary
+    /// conditions
+    std::vector<double> dirichletValue(num_elemental_dofs, 0.0);
+    for (int ii = 0; ii < num_elemental_dofs; ii++) {
+      if (dof_numbers[ii] < 0) dirichletValue[ii] = node_values[ii];
+    }
+    std::vector<double> dfe(num_elemental_dofs, 0.0);
+    for (int ii = 0; ii < num_elemental_dofs; ii++)
+      for (int jj = 0; jj < num_elemental_dofs; jj++)
+        dfe[ii] =
+            dfe[ii] + Ke[ii * num_elemental_dofs + jj] * dirichletValue[ii];
+    for (int ii = 0; ii < num_elemental_dofs; ii++)
+      fe[ii] = fe[ii] + dfe[ii];
+    las->AddToVector(num_elemental_dofs, dof_numbers, &fe[0]);
+  }
+
+
   void FEAStep::AssembleIntegratorIntoLAS(LAS * las,
                                  apf::Field * coordinates)
 
@@ -212,7 +290,7 @@ namespace amsi
       apf::getElementNumbers(apf_primary_numbering, me, ids);
       AssembleDOFs(las, sys->numElementalDOFs(), &ids[0], &dofs[0],
                    &sys->getKe()(0, 0), &sys->getfe()(0),
-                   sys->includesBodyForces());
+                   sys->includesBodyForces(), analysis_dim);
       apf::destroyElement(elm);
       apf::destroyMeshElement(mlm);
     }
