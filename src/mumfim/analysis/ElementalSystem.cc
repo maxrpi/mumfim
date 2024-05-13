@@ -17,7 +17,6 @@ namespace amsi
   // if the new mesh elemenent is on a mesh entity with the same type as the previous mesh element was, we don't need to reallocate the memory for the element matrix and vector (just zero it), otherwise we need to resize it
   void ElementalSystem::inElement(apf::MeshElement * ME)
   {
-    me = ME;
     e = apf::createElement(f,me);
     nenodes = apf::countNodes(e);
     int new_nedofs = nenodes * num_field_components;
@@ -30,11 +29,10 @@ namespace amsi
     }
     Ke.zero();
     fe.zero();
-    _inElement(ME);
   }
   void ElementalSystem::outElement()
   {
     apf::destroyElement(e);
-    e = NULL;
+    e = nullptr;
   }
 }

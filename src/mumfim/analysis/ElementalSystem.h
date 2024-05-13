@@ -15,7 +15,6 @@ namespace amsi
     int nedofs;
     int nenodes;
     int num_field_components;
-    virtual void _inElement(apf::MeshElement *) {}
   public:
     ElementalSystem(apf::Field * f, int o);
     virtual void inElement(apf::MeshElement *);
