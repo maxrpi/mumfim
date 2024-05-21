@@ -1,6 +1,7 @@
 #include "AnalysisStep.h"
 
 #include <apfNumbering.h>
+#include <apfFunctions.h>
 #include <apfShape.h>
 #include <maShape.h>
 
@@ -37,52 +38,15 @@ void AnalysisStep::RenumberDOFs()
   // i.e., a delta, on the apf_primary_field.
   void AnalysisStep::UpdateDOFs(const double* solution)
   {
-    if(apf::getValueType(apf_primary_field) == apf::VECTOR){
-      int num_components = apf::countComponents(apf_primary_field);
-      apf::MeshEntity* mesh_ent = NULL;
-      for (int ii = 0; ii < analysis_dim; ii++) {
-        for (apf::MeshIterator* it = apf_mesh->begin(ii);
-            (mesh_ent = apf_mesh->iterate(it));) {
-          if (apf_mesh->isOwned(mesh_ent)) {
-            apf::FieldShape* fs = apf::getShape(apf_primary_field);
-            int num_nodes = fs->countNodesOn(apf_mesh->getType(mesh_ent));
-            for (int jj = 0; jj < num_nodes; jj++) {
-              apf::Vector3 disp;
-              apf::getVector(apf_primary_field, mesh_ent, jj, disp);
-              for (int kk = 0; kk < num_components; kk++) {
-                if (!apf::isFixed(apf_primary_numbering, mesh_ent, jj, kk)) {
-                  int global_number =
-                      getNumber(apf_primary_numbering, mesh_ent, jj, kk);
-                  disp[kk] += solution[global_number - first_local_dof];
-                }
-              }
-              apf::setVector(apf_primary_field, mesh_ent, jj, disp);
-            }
-          }
-        }
-      }
-    } else {
-      int num_components = apf::countComponents(apf_primary_field);
-      apf::MeshEntity* mesh_ent = NULL;
-      for (int ii = 0; ii < analysis_dim; ii++) {
-        for (apf::MeshIterator* it = apf_mesh->begin(ii);
-            (mesh_ent = apf_mesh->iterate(it));) {
-          if (apf_mesh->isOwned(mesh_ent)) {
-            apf::FieldShape* fs = apf::getShape(apf_primary_field);
-            int num_nodes = fs->countNodesOn(apf_mesh->getType(mesh_ent));
-            for (int jj = 0; jj < num_nodes; jj++) {
-              double disp = apf::getScalar(apf_primary_field, mesh_ent, jj);
-              if (!apf::isFixed(apf_primary_numbering, mesh_ent, jj, 0)) {
-                int global_number =
-                    getNumber(apf_primary_numbering, mesh_ent, jj, 0);
-                disp += solution[global_number - first_local_dof];
-              }
-              apf::setScalar(apf_primary_field, mesh_ent, jj, disp);
-            }
-          }
-        }
-      }
-    }
+    amsi::WriteOp write_operation;
+    amsi::FreeApplyOp free_dof_write_operation(apf_primary_numbering, &write_operation);
+    amsi::ApplyVector(apf_primary_numbering, apf_primary_delta_field, solution, first_local_dof,
+                      &free_dof_write_operation);
+    amsi::AccumOp accumulation_operation;
+    amsi::FreeApplyOp free_dof_accumulate_operation(apf_primary_numbering, &accumulation_operation);
+    amsi::ApplyVector(apf_primary_numbering, apf_primary_field, solution, 
+                      first_local_dof, &free_dof_accumulate_operation);
+    apf::synchronize(apf_primary_delta_field);
     apf::synchronize(apf_primary_field);
   }  // FIXME Apply boundary conditions without simmetrix
   void AnalysisStep::ApplyBC_Dirichlet()

@@ -27,8 +27,11 @@ namespace mumfim
     apf_primary_field = apf::createLagrangeField(apf_mesh, "temperature", apf::SCALAR, 1);
     apf::zeroField(apf_primary_field);
     apf_primary_numbering = apf::createNumbering(apf_primary_field);
+    delta_T = apf::createLagrangeField(apf_mesh, "delta temperature", apf::SCALAR, 1);
+    apf::zeroField(delta_T);
 
     kappa = apf::createIPField(apf_mesh, "kappa", apf::MATRIX, 1);
+    apf::zeroField(kappa);
 
     // Future expansion
     //flux = apf::createIPField(apf_mesh, "fluxes", apf::VECTOR, 1);

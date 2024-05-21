@@ -7,6 +7,7 @@ namespace mumfim{
   class LinearHeatIntegrator : public amsi::ElementalSystem
   {
   apf::Field * T_;
+  apf::Field * deltaT_;
   apf::Field * K_;
   apf::Field * f_;
   apf::DynamicMatrix D;  // elemental kappa
