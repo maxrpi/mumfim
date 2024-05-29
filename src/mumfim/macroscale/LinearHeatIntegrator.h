@@ -16,7 +16,7 @@ namespace mumfim{
   public:
     LinearHeatIntegrator(apf::Field *T, apf::Numbering* numbering, apf::Field * K);
     LinearHeatIntegrator(apf::Field *T, apf::Numbering* numbering, apf::Matrix3x3 * K_r); // Piecewise constant Kappa
-    void inElement(apf::MeshElement *me);
+    //void inElement(apf::MeshElement *me);
     bool includesBodyForces() final { return true; }
     void atPoint(apf::Vector3 const &p,
       double w, double dV);
