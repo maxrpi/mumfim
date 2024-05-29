@@ -46,6 +46,7 @@ namespace mumfim
     ;
   }
 
+  /*
   void LinearHeatIntegrator::inElement(apf::MeshElement *me)
   {
     e = apf::createElement(T_, me);
@@ -56,6 +57,7 @@ namespace mumfim
     fe.setSize(nenodes);
     fe.zero();
   }
+  */
 
   void LinearHeatIntegrator::atPoint(apf::Vector3 const &p, double w, double dV)
   {
@@ -73,7 +75,7 @@ namespace mumfim
       B(0, i) = BT(i, 0) = Ba[i][0];
       B(1, i) = BT(i, 1) = Ba[i][1];
       B(2, i) = BT(i, 2) = Ba[i][2];
-      Theta(i) = field_values_[i] * Na[i];
+      Theta(i) = field_values_[i];
     }
 
     apf::DynamicMatrix BT_D_B(nenodes,nenodes);
@@ -85,6 +87,8 @@ namespace mumfim
     Ke += BT_D_B;  // Accumulate over integration points
     // fe holds the residual vector, because of the incremental formulation
     // In the case of heat sources the residual will be Ke*theta - rhs
-    apf::multiply(Ke, Theta, fe); 
+    apf::DynamicVector fe_ip(nedofs);
+    apf::multiply(Ke, Theta, fe_ip); 
+    fe -=  fe_ip;
   }
 }
