@@ -3,6 +3,7 @@
 #include <amsiPETScLAS.h>
 #include <apf.h>
 #include <petscsnes.h>
+#include <petscvec.h>
 
 #include <iostream>
 
@@ -56,8 +57,8 @@ namespace mumfim
       // residuals
       const double * sol;
       VecGetArrayRead(solution, &sol);
+
       an->analysis_step_->UpdateDOFs(sol);
-      VecRestoreArrayRead(solution, &sol);
       an->analysis_step_->ApplyBC_Dirichlet();
       an->analysis_step_->RenumberDOFs();
       int gbl, lcl, off;
@@ -70,10 +71,13 @@ namespace mumfim
       VecAssemblyEnd(petsc_las->GetVector());
       MatAssemblyBegin(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
       MatAssemblyEnd(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
+
+      Vec rhs = petsc_las->GetVector(); 
+
+      MatMultAdd(petsc_las->GetMatrix(), solution, rhs, residual);
+
       an->analysis_step_->iter();
-      // instead of doing this we can probably pas las->GetVector() to SNESSetFunction
-      VecCopy(petsc_las->GetVector(), residual);
-      // an->analysis_step_->AcceptDOFs();
+      VecRestoreArrayRead(solution, &sol);
     }
     catch (mumfim_error & e)
     {
@@ -130,6 +134,8 @@ namespace mumfim
                                              void * ctx)
   {
     auto * an = static_cast<FEMAnalysis *>(ctx);
+    PetscReal atol, rtol, stol;
+    PetscInt maxit, maxf;
     auto error = SNESConvergedDefault(snes, it, xnorm, gnorm, f, reason, ctx);
     bool converged = (reason != nullptr && *reason != SNES_CONVERGED_ITERATING);
     int accepted = converged ? 1 : -1;
