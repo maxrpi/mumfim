@@ -12,15 +12,20 @@ namespace amsi
                                             std::vector<int>& dof_numbers, std::vector<double> & values) {
 
     const auto ncomponents = apf::countComponents(field);
-    values.resize(ncomponents*nenodes);
+
     dof_numbers.resize(ncomponents*nenodes);
+    apf::NewArray<int> new_array_numbering(ncomponents*nenodes);
+    apf::getElementNumbers(numbering, mesh_entity, new_array_numbering);
+
+    values.resize(ncomponents*nenodes);
     apf::NewArray<double> new_array_data(ncomponents*nenodes);
     e->getElementNodeData(new_array_data);
+
     for(int node=0; node<nenodes; ++node) {
       for(int component = 0; component < ncomponents; component++){
         int index = node*ncomponents + component;
+        dof_numbers[index] = new_array_numbering[index];
         values[index] = new_array_data[index];
-        dof_numbers[index] = apf::getNumber(numbering,mesh_entity,node, component);
       }
     }
   }

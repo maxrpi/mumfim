@@ -28,6 +28,8 @@ namespace amsi
     virtual int numElementalDOFs() {return nedofs;}
     virtual apf::DynamicMatrix& getKe() {return Ke;}
     virtual apf::DynamicVector& getfe() {return fe;}
+    virtual void zeroKe(){Ke.zero();}
+    virtual void zerofe(){fe.zero();}
 
     // TODO have getFieldValues and getFieldNumbers return mdspan
     [[nodiscard]] const std::vector<double>& getFieldValues() { return field_values_; }
