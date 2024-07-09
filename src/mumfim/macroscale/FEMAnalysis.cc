@@ -134,8 +134,6 @@ namespace mumfim
                                              void * ctx)
   {
     auto * an = static_cast<FEMAnalysis *>(ctx);
-    PetscReal atol, rtol, stol;
-    PetscInt maxit, maxf;
     auto error = SNESConvergedDefault(snes, it, xnorm, gnorm, f, reason, ctx);
     bool converged = (reason != nullptr && *reason != SNES_CONVERGED_ITERATING);
     int accepted = converged ? 1 : -1;
