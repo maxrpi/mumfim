@@ -63,7 +63,7 @@ namespace mumfim
   {
     // Using TJHughes, pp 68-70, add nonhomogenous part later
     // fe holds the residual vector, because of the incremental formulation
-    apf::NewArray<double> Na; apf::getShapeValues(e, p, Na);
+    //apf::NewArray<double> Na; apf::getShapeValues(e, p, Na);
     apf::NewArray<apf::Vector3> Ba; apf::getShapeGrads(e, p, Ba);
 
     apf::DynamicMatrix B(3, nenodes);
