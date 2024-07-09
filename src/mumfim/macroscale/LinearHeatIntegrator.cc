@@ -38,26 +38,6 @@ namespace mumfim
     ;
   }
 
-  LinearHeatIntegrator::LinearHeatIntegrator(apf::Field * temperature,apf::Numbering* numbering, apf::Field * kappa)
-    : amsi::ElementalSystem(temperature,numbering, 1)
-    , T_(temperature)
-    , K_(kappa)
-  {
-    ;
-  }
-
-  /*
-  void LinearHeatIntegrator::inElement(apf::MeshElement *me)
-  {
-    e = apf::createElement(T_, me);
-    nenodes = apf::countNodes(e);
-    nedofs = nenodes;  // Assumes scalar values at nodes
-    Ke.setSize(nenodes, nenodes);
-    Ke.zero();
-    fe.setSize(nenodes);
-    fe.zero();
-  }
-  */
 
   void LinearHeatIntegrator::atPoint(apf::Vector3 const &p, double w, double dV)
   {
