@@ -224,6 +224,8 @@ namespace amsi
   void FEAStep::AssembleIntegratorIntoLAS(LAS * las, apf::Field * coordinates)
 
   {
+    las->ZeroVector();
+    las->ZeroMatrix();
     if (coordinates == nullptr)
     {
       coordinates = apf_mesh->getCoordinateField();
