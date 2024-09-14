@@ -36,18 +36,8 @@ namespace mumfim
                     MPI_Comm comm_ = AMSI_COMM_SCALE);
     virtual ~LinearHeatConductionStep();
     void computeInitGuess(amsi::LAS* las);
-    //void step();
-    //void iter();
     void Assemble(amsi::LAS* las) override;
-    //void UpdateDOFs(const double* sol) override;
-    //virtual void recoverSecondaryVariables(int);
-    //virtual void preRun() {};
-    //void AcceptDOFs(){ apf::copyData(temperature, getUField()); }
-    //int getIteration() { return iteration; }
-    //apf::Numbering* getNumbering() { return apf_primary_numbering; }
     apf::Field* getUField() { return apf_primary_field; }
-    //apf::Mesh* getMesh() { return apf_mesh; }
-    //void getFluxOn(apf::ModelEntity* ent, double* frc);
 
   };
 

@@ -85,6 +85,7 @@ namespace mumfim
       std::cerr << e.what() << "\n";
       an->stp = -2;
       an->checkpoint();
+      
       PetscViewer viewer;
       // write residual/stiffness to file
       auto stiffness_matrix_file =
