@@ -1,4 +1,5 @@
 #include "StepperFactory.h"
+#include "EffectiveKappaStep.h"
 #include "LinearHeatConductionStep.h"
 #include "LinearTissueStep.h"
 #include "NonlinearTissueStep.h"
@@ -35,6 +36,9 @@ namespace mumfim
     }
 
     switch(problem_type_index){
+      case(10):
+        stepper = new EffectiveKappaStep(mesh, analysis_case, com);
+        break;
       case(11):
         stepper = new LinearHeatConductionStep(mesh, analysis_case, com);
         break;
