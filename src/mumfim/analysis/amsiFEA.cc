@@ -218,6 +218,7 @@ namespace amsi
         fe[ii] += Ke(ii, jj) * dirichlet_value;
       }
     }
+    // Are there still negative values in dof_numbers? Is this correct?
     las->AddToVector(num_elemental_dofs, dof_numbers.data(), &fe[0]);
   }
 
