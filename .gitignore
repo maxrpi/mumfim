@@ -10,6 +10,7 @@ build_release/
 simmetrix_log
 tags
 compile_commands.json
+**/.vscode/**
 
 # Prerequisites
 *.d
@@ -313,4 +314,16 @@ flycheck_*.el
 *.pyc
 
 spack*
+**/build-*
 .ccls
+
+*.vtu
+*.pvtu
+*.yaml
+*.xmt_txt
+*.x_t
+*.smd
+*.smb
+*.sms
+*.dmg
+petsc_*mtx*
