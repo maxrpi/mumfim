@@ -22,7 +22,6 @@ namespace mumfim
                                    MPI_Comm comm_)
       : amsi::FEAStep(mesh, analysis_case, {}, {}, "macro", comm_)
       , constitutives()
-      , iteration(0)
   {
     apf_primary_field = apf::createLagrangeField(apf_mesh, "dummy", apf::SCALAR, 1);
     apf::zeroField(apf_primary_field);
@@ -186,7 +185,7 @@ namespace mumfim
         continue;
       }
       apf::MeshElement * mlm = apf::createMeshElement(coordinates, mesh_entity);
-      auto * sys = getIntegrator(mesh_entity);
+      auto * sys = getIntegrator(mesh_entity, 0);
       //Processing this integrator directly accumulates into stiffness ubmatrices
       sys->process(mlm);  
 
@@ -195,7 +194,8 @@ namespace mumfim
     apf_mesh->end(mesh_region_iter);
   }
 
-  amsi::ElementalSystem * EffectiveKappaStep::getIntegrator(apf::MeshEntity * mesh_entity)
+  amsi::ElementalSystem * EffectiveKappaStep::getIntegrator(
+    apf::MeshEntity * mesh_entity, int integration_point)
   {
     return constitutives[apf_mesh->toModel(mesh_entity)].get();
   }

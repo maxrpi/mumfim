@@ -25,9 +25,10 @@ namespace mumfim
     apf::Field * flux;
     apf::Field * kappa;
     apf::Field * sources;
+    apf::Matrix3x3 kappaM;
     std::map<std::pair<int, int>, double *> k_map;
-    int iteration;
     std::vector <int> interior, exterior; 
+
     double RVEvolume;
 
     [[nodiscard]] amsi::ElementalSystem * getIntegrator(
@@ -38,10 +39,11 @@ namespace mumfim
     EffectiveKappaStep(apf::Mesh* mesh, const mt::CategoryNode& analysis_case,
                     MPI_Comm comm_ = AMSI_COMM_SCALE);
     virtual ~EffectiveKappaStep();
-    void computeInitGuess(amsi::LAS* las);
-    void Assemble(amsi::LAS* las) override;
-    apf::Matrix3x3 computeKM(const mt::CategoryNode& analysis_case, MPI_Comm comm_ = AMSI_COMM_SCALE);
-    apf::Field* getUField() { return apf_primary_field; }
+    void Assemble(amsi::LAS* las) override = {};
+    void Assemble() override = {};
+    void FormReducedStiffnessMatrix();
+    void AssembleEffectiveKappa();
+    apf::Matrix3x3 getEffectiveKappa() {return kappaM;}
 
   };
 
