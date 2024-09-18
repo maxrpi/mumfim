@@ -17,7 +17,6 @@
 #include "amsiLAS.h"
 #include "amsiMPI.h"
 #include "model_traits/AssociatedModelTraits.h"
-#include "mumfim/analysis/amsiFEA.h"
 #include "mumfim/exceptions.h"
 namespace amsi {
   struct ModelDefinition {

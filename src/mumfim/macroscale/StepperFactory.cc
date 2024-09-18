@@ -3,6 +3,7 @@
 #include "LinearTissueStep.h"
 #include "NonlinearTissueStep.h"
 #include "MultiscaleTissueStep.h"
+#include "EffectiveKappaEvaluator.h"
 
 namespace mumfim
 {
@@ -35,6 +36,9 @@ namespace mumfim
     }
 
     switch(problem_type_index){
+      case(10):
+        stepper = new EffectiveKappaEvaluator(mesh, analysis_case, com);
+        break;
       case(11):
         stepper = new LinearHeatConductionStep(mesh, analysis_case, com);
         break;

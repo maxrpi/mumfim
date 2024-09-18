@@ -1,5 +1,6 @@
 set(biotissue_src_files
         Analysis.cc
+        EffectiveKappaEvaluator.cc
         LinearHeatIntegrator.cc
         LinearHeatConductionStep.cc
         LinearTissueStep.cc
@@ -11,8 +12,10 @@ set(biotissue_src_files
         StiffnessVariation.cc
         FEMAnalysis.cc
         MultiscaleTissueAnalysis.cc
+        PropertyEvaluation.cc
         SinglescaleTissueAnalysis.cc
         StepperFactory.cc
+        ThermalStiffnessIntegrator.cc
         UpdatedLagrangianMaterialIntegrator.cc
         UpdatedLagrangianMaterialIntegrator.h
         materials/NeoHookean.cc
