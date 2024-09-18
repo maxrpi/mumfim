@@ -4,6 +4,7 @@
 #include <apfFunctions.h>
 #include <apfLabelRegions.h>
 #include <apfMesh.h>
+#include <apf.h>
 #include "mumfim/macroscale/PetscSNES.h"
 
 #include <array>
@@ -32,6 +33,7 @@ namespace mumfim
     // OK, this numbering needs to be different. Or maybe we should just have
     // a reindexing array/map for each of the submatrices.
     apf_primary_numbering = apf::createNumbering(apf_primary_field);
+    apf::naiveOrder(apf_primary_numbering);
     // These are convenient to have at various points.
     coordinates = apf_mesh->getCoordinateField(); 
 
@@ -131,11 +133,9 @@ namespace mumfim
     {
       int vertNumber = apf::getNumber(apf_primary_numbering, ent, 0, 0);
       apf::ModelEntity * classifiedOn = apf_mesh->toModel(ent);
-      for(auto bmf = boundary_model_faces.begin();
-          bmf != boundary_model_faces.end(); 
-          bmf++)
+      for(auto & bmf : boundary_model_faces)
       {
-        if(apf_mesh->isInClosureOf(classifiedOn, *bmf))
+        if(apf_mesh->isInClosureOf(classifiedOn, bmf))
         {
           apf::getVector(coordinates, ent, 0, p);
           centroid += p;
