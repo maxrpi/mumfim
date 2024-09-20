@@ -125,35 +125,51 @@ namespace mumfim
     onExterior.reserve(number_mesh_vertices);
     onExterior.assign(number_mesh_vertices, false);
     vert2subvert.reserve(number_mesh_vertices);
+    vert2subvert.assign(number_mesh_vertices,std::numeric_limits<int>::quiet_NaN());
     n_int = 0, n_ext = 0;
     apf::Vector3 p;
+    apf::MeshEntity *boundaryVerts[3];
     apf::MeshEntity *ent;
-    auto *mesh_it = apf_mesh->begin(0);
+    auto *mesh_it = apf_mesh->begin(2);
     while(ent = apf_mesh->iterate(mesh_it))
     {
-      int vertNumber = apf::getNumber(apf_primary_numbering, ent, 0, 0);
-      apf::ModelEntity * classifiedOn = apf_mesh->toModel(ent);
+      apf::ModelEntity* modelEntityClassifier = apf_mesh->toModel(ent);
+      int ClassifierDimension = apf_mesh->getModelType(modelEntityClassifier);
+      int faceModelTag = (ClassifierDimension != 2) ?
+         apf_mesh->getModelTag(modelEntityClassifier) :
+         -1;
       for(auto & bmf : boundary_model_faces)
       {
-        if(apf_mesh->isInClosureOf(classifiedOn, bmf))
+        if(apf_mesh->getModelTag(bmf) == faceModelTag)
         {
-          apf::getVector(coordinates, ent, 0, p);
-          centroid += p;
-          onExterior[vertNumber] = true;
-          vert2subvert[vertNumber] = n_ext++;
+          int n_boundaryVerts = apf_mesh->getDownward(ent, 0, boundaryVerts);
+          for(int ibv = 0; ibv < n_boundaryVerts; ibv++)
+          {
+            assert(apf_mesh->getType(boundaryVerts[ibv]) == 0);
+            int ivert_number = apf::getNumber(apf_primary_numbering, 
+                                              boundaryVerts[ibv], 0, 0);
+            if(!onExterior[ivert_number])
+            {
+              apf::getVector(coordinates, boundaryVerts[ibv], 0, p);
+              centroid += p;
+              onExterior[ivert_number] = true;
+              vert2subvert[ivert_number] = n_ext++;
+            }
+          }
           break;
         }
       }
-      if(onExterior[vertNumber] == false)
-      {
-        vert2subvert[vertNumber] = n_int++;
-      }
+      
     }
     centroid =  centroid / float(n_ext);
+    n_int = number_mesh_vertices - n_ext;
 
-    assert(n_int + n_ext == number_mesh_vertices);
   }
 
+  std::vector<int> meshVertsFromFace(apf::MeshEntity *ent)
+  {
+
+  }
   void EffectiveKappaEvaluator::Assemble(amsi::LAS *las)
   {
     locateVertices();
@@ -166,7 +182,7 @@ namespace mumfim
     assert(n_ext > 0); // Don't call this before Assemble
     Mat I, KiiInverse, *Product;
     MumfimPetscCall(MatCreateConstantDiagonal(analysis_comm, n_int, n_int, n_int, n_int, 1.0, &I));
-    MumfimPetscCall(MatSetSizes(KiiInverse, PETSC_DECIDE, PETSC_DECIDE, n_int, n_int));
+    MumfimPetscCall(MatSetSizes(KiiInverse, n_int, n_int, n_int, n_int));
 
     // This hurts me.
     MumfimPetscCall(MatLUFactor(Kii, nullptr, nullptr, nullptr));
