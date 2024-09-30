@@ -9,7 +9,7 @@ model traits:
             problem type:
               - name: problem type
                 type: int
-                value: 10
+                value: 11
                 geometry: ~
             material model:
               - category name: copper

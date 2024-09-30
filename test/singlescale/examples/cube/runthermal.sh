@@ -11,9 +11,10 @@ fi
 
 EXEDIR=/lore/bloomm2/mumfim/mumfim/build-linux-rhel9-skylake-3tts4ek/spack-build-3tts4ek/src/
 EXE=${EXEDIR}/mumfim_thermal_evaluation 
-MODELFILE=${BASE_DIR}/simplecube.dmg
-MESHFILE=${BASE_DIR}/simplecube.smb
-ATTRIBUTEFILE=${BASE_DIR}/simplecube.yaml
+MODELFILE=${BASE_DIR}/cube_int.dmg
+MESHFILE=${BASE_DIR}/cube_int.smb
+MESHFILE=${BASE_DIR}/cube_int26.smb
+ATTRIBUTEFILE=${BASE_DIR}/simplecube-thermal.yaml
 CASENAME=thermal
 AMSI_OPTIONS=${BASE_DIR}/amsi.yaml
 GDB="/opt/scorec/spack/rhel9/v0201_4/install/linux-rhel9-x86_64/gcc-7.4.0/gdb-13.1-z4rrapkqramzepkhrfj4tkcmvbimrsik/bin/gdb -args"

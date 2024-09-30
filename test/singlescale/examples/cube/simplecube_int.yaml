@@ -1,0 +1,53 @@
+model traits:
+  name: macro
+  cases:
+    - case name: thermal
+      model traits:
+        default geometry type: dimension id
+        problem definition:
+          macro:
+            displacement:
+              - name: Yplus
+                type: void
+                geometry: [[2, 4]]
+              - name: Xplus
+                type: void
+                geometry: [[2, 6]]
+              - name: Zplus
+                type: void
+                geometry: [[2, 1]]
+              - name: Zminus
+                type: void
+                geometry: [[2, 5]]
+              - name: Xminus
+                type: void
+                geometry: [[2, 2]]
+              - name: Yminus
+                type: void
+                geometry: [[2, 3]]
+            material model:
+              - category name: dielectric_region
+                continuum model:
+                  isotropic_neohookean:
+                    youngs modulus:
+                      - name: youngs modulus
+                        type: scalar
+                        value: 10000
+                        geometry: [[3, 1]]
+                    poisson ratio:
+                      - name: poisson ratio
+                        type: scalar
+                        value: 0.29999999999999999
+                        geometry: [[3, 1]]
+        solution strategy:
+          macro:
+            num timesteps:
+              - name: num timesteps
+                type: int
+                value: 1
+                geometry: ~
+            load balancing:
+              - name: load balancing
+                type: int
+                value: -2
+                geometry: ~

@@ -4,3 +4,4 @@
 -ksp_converged_reason
 -ksp_view
 -snes_atol 1.0e-10
+-options_left 0
