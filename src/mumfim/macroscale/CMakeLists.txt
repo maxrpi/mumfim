@@ -31,6 +31,8 @@ if (NOT ${BUILD_EXTERNAL})
     find_package(amsi COMPONENTS util analysis multiscale)
 endif ()
 
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
 add_library(biotissue ${biotissue_src_files})
 
 target_link_libraries(biotissue
@@ -39,7 +41,10 @@ target_link_libraries(biotissue
         amsi::util
         mumfim::analysis
         amsi::multiscale
-        amsi::amsi)
+        amsi::amsi
+        LAPACK::LAPACK
+        BLAS::BLAS
+        )
 
 if (MUMFIM_ENABLE_Torch)
     target_link_libraries(biotissue PUBLIC ${TORCH_LIBRARIES})

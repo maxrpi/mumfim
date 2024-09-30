@@ -30,19 +30,25 @@ namespace mumfim
     std::vector<bool> onExterior;
     std::vector<int> vert2subvert;
     apf::Vector3 centroid; //centroid of boundary nodes
+    double model_volume = 0.0;
     int n_int = 0;
     int n_ext = 0;
     Mat Kii, Kie, Kei, Kee;
+    double *Kii_LA, *Kie_LA, *Kei_LA, *Kee_LA;
 
     [[nodiscard]] amsi::ElementalSystem * getIntegrator(
         apf::MeshEntity * ent,
         int integration_point) override;
 
-    void collectInteriorAndExteriorVertices(void);
+    void locateVertices(void);
+
     void AssembleDOFs(const std::vector<int> & dof_numbers,
                          apf::DynamicMatrix & Ke);
-    void locateVertices(void);
     void AssembleIntegratorIntoMat(void);
+
+    void AssembleDOFs_LA(const std::vector<int> & dof_numbers,
+                         apf::DynamicMatrix & Ke);
+    void AssembleIntegratorIntoMat_LA(void);
 
     public:
     EffectiveKappaEvaluator(apf::Mesh* mesh, const mt::CategoryNode& analysis_case,
@@ -50,8 +56,9 @@ namespace mumfim
     virtual ~EffectiveKappaEvaluator();
     void Assemble(amsi::LAS*);
     void Solve();
-    apf::Field* getUField() { return apf_primary_field; }
+    void Solve_LA();
 
+    apf::Field * getUField() { return apf_primary_field;}
   };
 
 

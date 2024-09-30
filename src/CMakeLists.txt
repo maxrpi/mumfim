@@ -6,10 +6,12 @@ if (NOT ${BUILD_EXTERNAL})
     find_package(amsi REQUIRED)
     find_package(ModelTraits)
     find_package(las)
+    find_package(BLAS REQUIRED)
+    find_package(LAPACK REQUIRED)
 endif ()
 
 add_executable(mumfim_thermal_evaluation thermal_evaluation.cc)
-target_link_libraries(mumfim_thermal_evaluation biotissue amsi::amsi ModelTraits::ModelTraits ModelTraits::IO MPI::MPI_CXX)
+target_link_libraries(mumfim_thermal_evaluation biotissue amsi::amsi LAPACK::LAPACK BLAS::BLAS ModelTraits::ModelTraits ModelTraits::IO MPI::MPI_CXX )
 target_compile_features(mumfim_thermal_evaluation PUBLIC cxx_std_17)
 
 add_executable(mumfim_singlescale singlescale_analysis.cc)

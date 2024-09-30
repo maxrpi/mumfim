@@ -18,6 +18,15 @@
 #include "amsiFEA.h"
 #include "gmi.h"
 
+extern "C" {
+  extern void dgetrf_(int *M, int *N, double *A, int *LDA, int *IPIV, int *INFO);
+  extern void dgetri_(int *N, double *A, int * LDA, int *IPIV, double *WORK, int *LWORK, int *INFO);
+  extern void dgemm_(char *transa, char *transb, int *m, int *n, int *k,
+                    double *alpha, double *A, int *lda, double *B,
+                    int *ldb, double *beta, double *c, int *ldc);
+}
+
+
 namespace mumfim
 {
   EffectiveKappaEvaluator::EffectiveKappaEvaluator(apf::Mesh * mesh,
@@ -85,12 +94,14 @@ namespace mumfim
     }
     gmi_end(gmodel, it);
 
+    model_volume = 0.0;
     apf::MeshEntity *ent;
     auto *mesh_it = mesh->begin(3);
     while((ent = mesh->iterate(mesh_it)))
     {
       int tag = mesh->getModelTag(mesh->toModel(ent));
       apf::setMatrix(kappa, ent, 0, mappa.at(tag));
+      model_volume += apf::measure(apf_mesh, ent);
     }
   
   }
@@ -104,19 +115,6 @@ namespace mumfim
   // Populate the interior and exterior member vectors with (apf::MeshEntity*) vertices
   void EffectiveKappaEvaluator::locateVertices(void)
   {
-     // Develop a vector of model faces on the boundary
-    std::vector<apf::ModelEntity *> boundary_model_faces;
-    auto * gmodel = apf_mesh->getModel();
-    struct gmi_ent * gent;
-    auto * it = gmi_begin(gmodel, 2); // Loop over model faces
-    while ((gent = gmi_next(gmodel, it)))
-    {
-      gmi_set *adjacent_regions = gmi_adjacent(gmodel, gent, 3);
-      if(adjacent_regions->n == 1){
-        boundary_model_faces.push_back(reinterpret_cast<apf::ModelEntity *>(gent));
-      }
-    }
-    gmi_end(gmodel, it);
 
     // Populate vert2subvert mapping and onExterior array.
     // vert2subvert[local vertex numbering] --> submatrix vertex numbering
@@ -125,74 +123,199 @@ namespace mumfim
     onExterior.reserve(number_mesh_vertices);
     onExterior.assign(number_mesh_vertices, false);
     vert2subvert.reserve(number_mesh_vertices);
-    vert2subvert.assign(number_mesh_vertices,std::numeric_limits<int>::quiet_NaN());
+    vert2subvert.assign(number_mesh_vertices,-1);
     n_int = 0, n_ext = 0;
+    centroid[0] = 0.0; centroid[1] = 0.0; centroid[2] = 0.0;
     apf::Vector3 p;
     apf::MeshEntity *boundaryVerts[3];
     apf::MeshEntity *ent;
     auto *mesh_it = apf_mesh->begin(2);
     while(ent = apf_mesh->iterate(mesh_it))
     {
-      apf::ModelEntity* modelEntityClassifier = apf_mesh->toModel(ent);
-      int ClassifierDimension = apf_mesh->getModelType(modelEntityClassifier);
-      int faceModelTag = (ClassifierDimension != 2) ?
-         apf_mesh->getModelTag(modelEntityClassifier) :
-         -1;
-      for(auto & bmf : boundary_model_faces)
+      bool onBoundary = apf_mesh->countUpward(ent) == 1;
+      int n_boundaryVerts = apf_mesh->getDownward(ent, 0, boundaryVerts);
+      for(int ibv = 0; ibv < n_boundaryVerts; ibv++)
       {
-        if(apf_mesh->getModelTag(bmf) == faceModelTag)
+        int ivert_number = apf::getNumber(apf_primary_numbering, 
+                                          boundaryVerts[ibv], 0, 0);
+        if(onBoundary)
         {
-          int n_boundaryVerts = apf_mesh->getDownward(ent, 0, boundaryVerts);
-          for(int ibv = 0; ibv < n_boundaryVerts; ibv++)
+          if(vert2subvert[ivert_number] < 0) // A new, unvisited vertex
           {
-            assert(apf_mesh->getType(boundaryVerts[ibv]) == 0);
-            int ivert_number = apf::getNumber(apf_primary_numbering, 
-                                              boundaryVerts[ibv], 0, 0);
-            if(!onExterior[ivert_number])
-            {
-              apf::getVector(coordinates, boundaryVerts[ibv], 0, p);
-              centroid += p;
-              onExterior[ivert_number] = true;
-              vert2subvert[ivert_number] = n_ext++;
-            }
+            apf::getVector(coordinates, boundaryVerts[ibv], 0, p);
+            centroid += p;
+            onExterior[ivert_number] = true;
+            vert2subvert[ivert_number] = n_ext++;
           }
-          break;
+
+        } else {
+          if(vert2subvert[ivert_number] < 0) // A new, unvisited vertex
+          {
+            vert2subvert[ivert_number] = n_int++;
+          }
         }
       }
       
     }
     centroid =  centroid / float(n_ext);
-    n_int = number_mesh_vertices - n_ext;
+    assert(n_int + n_ext == number_mesh_vertices);
 
   }
 
-  std::vector<int> meshVertsFromFace(apf::MeshEntity *ent)
-  {
-
-  }
   void EffectiveKappaEvaluator::Assemble(amsi::LAS *las)
   {
     locateVertices();
-    AssembleIntegratorIntoMat();
-    Solve();
+    //AssembleIntegratorIntoMat();
+    AssembleIntegratorIntoMat_LA();
+    //Solve();
+    Solve_LA();
   }
+
+  //---------------------LAPACK VERSION -----------------
+  void EffectiveKappaEvaluator::Solve_LA()
+  {
+    assert(n_ext > 0); // Don't call this before Assemble
+
+    /*
+    double *Kii_LA_copy = new double[n_int * n_int];
+    for (int i = 0; i < n_int * n_int; i++){ Kii_LA_copy[i] = Kii_LA[i];}
+    double *I = new double[n_int * n_int];
+    */
+
+    int *ipiv = new int[n_int];
+    int info;
+    int lwork = n_int * 64;
+    double *work = new double[lwork];
+    dgetrf_(&n_int, &n_int, Kii_LA, &n_int, ipiv, &info);
+    assert(info == 0);
+    dgetri_(&n_int, Kii_LA, &n_int, ipiv, work, &lwork, &info);
+    assert(info == 0);
+
+    double *KiiInverse = Kii_LA; // Kii_LA is overwritten and should be thought of as its inverse
+
+    double alpha = 1.0, beta = 0.0;
+    double *intermediate = new double[n_int * n_ext];
+    char * EN = "N";
+    char * TEE = "T";
+    // intermediate = Inv(k^{ff}) * k^{fp}, part of second term in equation (35)
+    dgemm_(EN, EN, &n_int, &n_ext, &n_int, &alpha, KiiInverse, &n_int, Kie_LA, &n_int, &beta, intermediate, &n_int);
+
+    alpha = -1.0; beta = +1.0;
+    // k* =  k^{pp} - k^{pf} * intermediate, rest of equation (35)
+    dgemm_(EN, EN, &n_ext, &n_ext, &n_int, &alpha, Kei_LA, &n_ext, intermediate, &n_int, &beta, Kee_LA, &n_ext );
+
+    double *k_star = Kee_LA;  // Kee is overwritten and should be thought of as k_star now.
+
+    std::vector<std::array<double,3>> Xsc;
+    Xsc.reserve(n_ext);
+    apf::Vector3 p;
+    int ext_vert = 0;
+    apf::MeshEntity *ent;
+    auto *mesh_it = apf_mesh->begin(0);
+    while((ent = apf_mesh->iterate(mesh_it)))
+    {
+      int vertNumber = apf::getNumber(apf_primary_numbering, ent, 0, 0);
+      if(onExterior[vertNumber])
+      {
+        apf::getVector(coordinates, ent, 0, p);
+        Xsc[ext_vert][0] = p[0] - centroid[0];
+        Xsc[ext_vert][1] = p[1] - centroid[1];
+        Xsc[ext_vert][2] = p[2] - centroid[2];
+        ext_vert++;
+      }
+    }
+
+    Km = Km * 0.0;
+    double k_star_AB;
+    for(int A = 0; A < n_ext; A++){
+      for(int B = 0; B < n_ext; B++){
+        k_star_AB = *(k_star + A * n_ext + B);
+        for(int i = 0; i < 3; i++)
+          for(int j = 0; j < 3; j++)
+            Km[i][j] += k_star_AB * Xsc[B][j] * Xsc[A][i];
+      }
+    }
+    Km = Km / model_volume;
+
+    std::cout << "Km: \n" <<  Km << "\n"; 
+  }
+
+
+  void EffectiveKappaEvaluator::AssembleIntegratorIntoMat_LA()
+  {
+
+    Kii_LA = new double[n_int*n_int];
+    Kie_LA = new double[n_int*n_ext];
+    Kei_LA = new double[n_ext*n_int];
+    Kee_LA = new double[n_ext*n_ext];
+
+    apf::MeshIterator * mesh_region_iter = apf_mesh->begin(analysis_dim);
+    while (apf::MeshEntity * mesh_entity = apf_mesh->iterate(mesh_region_iter))
+    {
+      if (!apf_mesh->isOwned(mesh_entity))
+      {
+        continue;
+      }
+      apf::MeshElement * mlm = apf::createMeshElement(coordinates, mesh_entity);
+      auto * sys = getIntegrator(mesh_entity, 0);
+      sys->process(mlm);
+
+      AssembleDOFs_LA(sys->getFieldNumbers(), sys->getKe());
+      apf::destroyMeshElement(mlm);
+    }
+    apf_mesh->end(mesh_region_iter);
+  }
+
+
+void EffectiveKappaEvaluator::AssembleDOFs_LA(const std::vector<int> & dof_numbers,
+                         apf::DynamicMatrix & Ke)
+  {
+    
+    for(int i = 0; i < 4; i++)
+    {
+      int i_v = dof_numbers[i];
+      int i_sv = vert2subvert[i_v];
+      for(int j = 0; j < 4; j++)
+      {
+        int j_v = dof_numbers[j];
+        int j_sv = vert2subvert[j_v];
+        double value = Ke(i,j);
+        if(onExterior[i_v]) {
+          if(onExterior[j_v]) {
+            *(Kee_LA + i_sv * n_ext + j_sv) = value;
+          } else {
+            *(Kei_LA + i_sv * n_ext + j_sv) = value;
+          }
+        } else {
+          if(onExterior[j_v]) {
+            *(Kie_LA + i_sv * n_int + j_sv) = value;
+          } else {
+            *(Kii_LA + i_sv * n_int + j_sv) = value;
+          }
+        }
+      }
+    }
+  }
+
+
+//-------------------------- PETSC VERSION -------------------------
 
   void EffectiveKappaEvaluator::Solve()
   {
     assert(n_ext > 0); // Don't call this before Assemble
-    Mat I, KiiInverse, *Product;
-    MumfimPetscCall(MatCreateConstantDiagonal(analysis_comm, n_int, n_int, n_int, n_int, 1.0, &I));
-    MumfimPetscCall(MatSetSizes(KiiInverse, n_int, n_int, n_int, n_int));
+    Mat I, KiiInverse, Product;
+    MumfimPetscCall(MatCreateConstantDiagonal(PETSC_COMM_WORLD, n_int, n_int, n_int, n_int, 1.0, &I));
+    MumfimPetscCall(MatCreateSeqDense(PETSC_COMM_WORLD, n_int, n_int, NULL, &KiiInverse));
 
     // This hurts me.
     MumfimPetscCall(MatLUFactor(Kii, nullptr, nullptr, nullptr));
     MumfimPetscCall(MatMatSolve(Kii, I, KiiInverse));
 
-    MumfimPetscCall(MatProductCreate(Kei, KiiInverse, Kie, Product));
-    MumfimPetscCall(MatProductSetType(*Product, MATPRODUCT_ABC));
-    MumfimPetscCall(MatProductNumeric(*Product));
+    MumfimPetscCall(MatProductCreate(Kei, KiiInverse, Kie, &Product));
+    MumfimPetscCall(MatProductSetType(Product, MATPRODUCT_ABC));
+    MumfimPetscCall(MatProductNumeric(Product));
 
-    MumfimPetscCall(MatAXPY(Kee, -1.0, *Product, UNKNOWN_NONZERO_PATTERN));
+    MumfimPetscCall(MatAXPY(Kee, -1.0, Product, UNKNOWN_NONZERO_PATTERN));
 
     Mat &k_star = Kee;  // Kee is overwritten and should be thought of as k_star now.
 
@@ -227,14 +350,6 @@ namespace mumfim
     }
 
     std::cout << "Km: \n" <<  Km << "\n"; 
-  }
-
-
-  amsi::ElementalSystem * EffectiveKappaEvaluator::getIntegrator(
-      apf::MeshEntity * mesh_entity,
-      int /*unused integration_point */)
-  {
-    return constitutives[apf_mesh->toModel(mesh_entity)].get();
   }
 
   void EffectiveKappaEvaluator::AssembleIntegratorIntoMat()
@@ -304,4 +419,13 @@ void EffectiveKappaEvaluator::AssembleDOFs(const std::vector<int> & dof_numbers,
     MumfimPetscCall(MatAssemblyEnd(Kei, MAT_FINAL_ASSEMBLY));
     MumfimPetscCall(MatAssemblyEnd(Kee, MAT_FINAL_ASSEMBLY));
   }
+
+// ----------------- UTILITY FUNCTIONS -----------------
+  amsi::ElementalSystem * EffectiveKappaEvaluator::getIntegrator(
+      apf::MeshEntity * mesh_entity,
+      int /*unused integration_point */)
+  {
+    return constitutives[apf_mesh->toModel(mesh_entity)].get();
+  }
+
 }
