@@ -103,6 +103,7 @@ namespace mumfim
       apf::setMatrix(kappa, ent, 0, mappa.at(tag));
       model_volume += apf::measure(apf_mesh, ent);
     }
+    std::cout << "Model volume: " << model_volume << "\n";
   
   }
 
@@ -182,29 +183,43 @@ namespace mumfim
     double *I = new double[n_int * n_int];
     */
 
-    int *ipiv = new int[n_int];
-    int info;
-    int lwork = n_int * 64;
-    double *work = new double[lwork];
-    dgetrf_(&n_int, &n_int, Kii_LA, &n_int, ipiv, &info);
-    assert(info == 0);
-    dgetri_(&n_int, Kii_LA, &n_int, ipiv, work, &lwork, &info);
-    assert(info == 0);
+    double *k_star;
+    if(n_int == 0){
+      k_star = Kee_LA;
 
-    double *KiiInverse = Kii_LA; // Kii_LA is overwritten and should be thought of as its inverse
+      printf(" k_star %dx%d :\n", n_ext, n_ext);
+      for(int i=0; i<n_ext; i++){
+        for(int j=0; j<n_ext; j++){
+          printf("%7.4f ",k_star[i * n_ext + j]);
+        }
+        printf("\n");
+      }
+    } else {
 
-    double alpha = 1.0, beta = 0.0;
-    double *intermediate = new double[n_int * n_ext];
-    char * EN = "N";
-    char * TEE = "T";
-    // intermediate = Inv(k^{ff}) * k^{fp}, part of second term in equation (35)
-    dgemm_(EN, EN, &n_int, &n_ext, &n_int, &alpha, KiiInverse, &n_int, Kie_LA, &n_int, &beta, intermediate, &n_int);
+      int *ipiv = new int[n_int];
+      int info;
+      int lwork = n_int * 64;
+      double *work = new double[lwork];
+      dgetrf_(&n_int, &n_int, Kii_LA, &n_int, ipiv, &info);
+      assert(info == 0);
+      dgetri_(&n_int, Kii_LA, &n_int, ipiv, work, &lwork, &info);
+      assert(info == 0);
 
-    alpha = -1.0; beta = +1.0;
-    // k* =  k^{pp} - k^{pf} * intermediate, rest of equation (35)
-    dgemm_(EN, EN, &n_ext, &n_ext, &n_int, &alpha, Kei_LA, &n_ext, intermediate, &n_int, &beta, Kee_LA, &n_ext );
+      double *KiiInverse = Kii_LA; // Kii_LA is overwritten and should be thought of as its inverse
 
-    double *k_star = Kee_LA;  // Kee is overwritten and should be thought of as k_star now.
+      double alpha = 1.0, beta = 0.0;
+      double *intermediate = new double[n_int * n_ext];
+      char * EN = "N";
+      char * TEE = "T";
+      // intermediate = Inv(k^{ff}) * k^{fp}, part of second term in equation (35)
+      dgemm_(EN, EN, &n_int, &n_ext, &n_int, &alpha, KiiInverse, &n_int, Kie_LA, &n_int, &beta, intermediate, &n_int);
+
+      alpha = -1.0; beta = +1.0;
+      // k* =  k^{pp} - k^{pf} * intermediate, rest of equation (35)
+      dgemm_(EN, EN, &n_ext, &n_ext, &n_int, &alpha, Kei_LA, &n_ext, intermediate, &n_int, &beta, Kee_LA, &n_ext );
+
+      k_star = Kee_LA;  // Kee is overwritten and should be thought of as k_star now.
+    }
 
     std::vector<std::array<double,3>> Xsc;
     Xsc.reserve(n_ext);
@@ -221,6 +236,7 @@ namespace mumfim
         Xsc[ext_vert][0] = p[0] - centroid[0];
         Xsc[ext_vert][1] = p[1] - centroid[1];
         Xsc[ext_vert][2] = p[2] - centroid[2];
+        //printf("%3d    %8.4f   %8.4f   %8.4f \n", ext_vert, Xsc[ext_vert][0], Xsc[ext_vert][1], Xsc[ext_vert][2]);
         ext_vert++;
       }
     }
@@ -231,13 +247,16 @@ namespace mumfim
       for(int B = 0; B < n_ext; B++){
         k_star_AB = *(k_star + A * n_ext + B);
         for(int i = 0; i < 3; i++)
+          //Km[i][i] += k_star_AB * Xsc[B][i] * Xsc[A][i];
           for(int j = 0; j < 3; j++)
             Km[i][j] += k_star_AB * Xsc[B][j] * Xsc[A][i];
       }
     }
     Km = Km / model_volume;
 
-    std::cout << "Km: \n" <<  Km << "\n"; 
+    for(int i = 0; i < 3; i++)
+      printf("%8.4f  %8.4f  %8.4f\n", Km[i][0], Km[i][1], Km[i][2]);
+    //std::cout << "Km: \n" <<  Km << "\n"; 
   }
 
 
@@ -248,6 +267,10 @@ namespace mumfim
     Kie_LA = new double[n_int*n_ext];
     Kei_LA = new double[n_ext*n_int];
     Kee_LA = new double[n_ext*n_ext];
+    for(int i=0; i< n_int*n_int; i++) Kii_LA[i] = 0.0;
+    for(int i=0; i< n_int*n_ext; i++) Kie_LA[i] = 0.0;
+    for(int i=0; i< n_ext*n_int; i++) Kei_LA[i] = 0.0;
+    for(int i=0; i< n_ext*n_ext; i++) Kee_LA[i] = 0.0;
 
     apf::MeshIterator * mesh_region_iter = apf_mesh->begin(analysis_dim);
     while (apf::MeshEntity * mesh_entity = apf_mesh->iterate(mesh_region_iter))
@@ -280,17 +303,18 @@ void EffectiveKappaEvaluator::AssembleDOFs_LA(const std::vector<int> & dof_numbe
         int j_v = dof_numbers[j];
         int j_sv = vert2subvert[j_v];
         double value = Ke(i,j);
+        // These are going to need to be row major for the fortran solves
         if(onExterior[i_v]) {
           if(onExterior[j_v]) {
-            *(Kee_LA + i_sv * n_ext + j_sv) = value;
+            *(Kee_LA + i_sv * n_ext + j_sv) += value;
           } else {
-            *(Kei_LA + i_sv * n_ext + j_sv) = value;
+            *(Kei_LA + i_sv * n_ext + j_sv) += value;
           }
         } else {
           if(onExterior[j_v]) {
-            *(Kie_LA + i_sv * n_int + j_sv) = value;
+            *(Kie_LA + i_sv * n_int + j_sv) += value;
           } else {
-            *(Kii_LA + i_sv * n_int + j_sv) = value;
+            *(Kii_LA + i_sv * n_int + j_sv) += value;
           }
         }
       }
