@@ -25,11 +25,11 @@ namespace mumfim
     apf::Field * kappa;
     apf::Field * coordinates;
     int iteration;
-    apf::Matrix3x3 Km;
+    //apf::Matrix3x3 Km;
     // Mesh vertex number to partitioned vertex number
     std::vector<bool> onExterior;
     std::vector<int> vert2subvert;
-    apf::Vector3 centroid; //centroid of boundary nodes
+    double centroid[3]; //centroid of RVE bounding box
     double model_volume = 0.0;
     int n_int = 0;
     int n_ext = 0;
@@ -59,7 +59,14 @@ namespace mumfim
     void Solve_LA();
 
     apf::Field * getUField() { return apf_primary_field;}
+    void sanityCheck1(double *k_star,
+                    std::vector<std::array<double,3>> &Xsc,
+                    int N, bool colMajor=true);
   };
+
+  // 
+  bool isTranspose(int N, int M, double *A, double* B, double tol);
+  void mapToUnitCube(apf::Mesh *mesh, double *centroid, bool scale);
 
 
 }

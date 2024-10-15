@@ -1,6 +1,7 @@
 #include <amsiAnalysis.h>
 #include <amsiUtil.h>
 #include <apfMDS.h>
+#include <apfBox.h>
 #include <fenv.h>
 #include <getopt.h>
 #include <gmi_mesh.h>
@@ -108,8 +109,9 @@ int main(int argc, char ** argv)
     int sz = 0;
     MPI_Comm_size(AMSI_COMM_WORLD, &sz);
     gmi_register_mesh();
-    apf::Mesh * mesh =
-        apf::loadMdsMesh(model_filename.c_str(), mesh_filename.c_str());
+    //apf::Mesh * mesh =
+        //apf::loadMdsMesh(model_filename.c_str(), mesh_filename.c_str());
+    apf::Mesh * mesh = apf::makeMdsBox(3, 5, 3, 1.0, 1.0, 1.0, false);
     if (!file_exists(model_traits_filename))
     {
       std::cerr << "model traits file: " << model_traits_filename
