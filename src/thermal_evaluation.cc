@@ -29,12 +29,14 @@ void display_help_string()
       << "  [-c, --case string]                       a string specifying the "
          "analysis case to run\n"
       << "  [-m, --mesh mesh_file]                    the mesh file (.smb)\n"
-      << "  [-b, --traits]                         model traits filename\n"
-      << "  [-a, --amsi]                           amsi options filename\n";
+      << "  [-b, --traits]                            model traits filename\n"
+      << "  [-k, --kappafile filename]                kappa tag file\n"
+      << "  [-a, --amsi]                              amsi options filename\n";
 }
 std::string model_filename("");
 std::string mesh_filename("");
 std::string analysis_case("");
+std::string kappa_tag_filename("");
 std::string model_traits_filename;
 std::string amsi_options_filename;
 // std::string vol_log("volume");
@@ -52,10 +54,11 @@ bool parse_options(int & argc, char **& argv)
         {"balancing", required_argument, 0, 'b'},
         {"case", required_argument, 0, 'c'},
         {"amsi", required_argument, 0, 'a'},
+        {"kappa", required_argument, 0, 'k'},
     };
     int option_index = 0;
     int option =
-        getopt_long(argc, argv, "hl:m:g:b:c:a:", long_options, &option_index);
+        getopt_long(argc, argv, "hl:m:g:b:c:a:k:", long_options, &option_index);
     switch (option)
     {
       case 'h':
@@ -76,6 +79,9 @@ bool parse_options(int & argc, char **& argv)
         break;
       case 'a':
         amsi_options_filename = optarg;
+        break;
+      case 'k':
+        kappa_tag_filename = optarg;
         break;
       case -1:
         // end of options
@@ -109,9 +115,12 @@ int main(int argc, char ** argv)
     int sz = 0;
     MPI_Comm_size(AMSI_COMM_WORLD, &sz);
     gmi_register_mesh();
-    //apf::Mesh * mesh =
-        //apf::loadMdsMesh(model_filename.c_str(), mesh_filename.c_str());
-    apf::Mesh * mesh = apf::makeMdsBox(3, 5, 3, 1.0, 1.0, 1.0, false);
+
+    apf::Mesh * mesh;
+    mesh = apf::loadMdsMesh(model_filename.c_str(), mesh_filename.c_str());
+
+    //mesh = apf::makeMdsBox(2, 2, 3, 1.0, 1.0, 1.0, false);
+
     if (!file_exists(model_traits_filename))
     {
       std::cerr << "model traits file: " << model_traits_filename
@@ -126,8 +135,8 @@ int main(int argc, char ** argv)
       MPI_Abort(AMSI_COMM_WORLD, 1);
     }
     mumfim::PropertyEvaluation an(mesh,
-                              std::make_unique<mt::CategoryNode>(*case_traits),
-                              AMSI_COMM_WORLD, amsi_analysis);
+                              std::make_unique<mt::CategoryNode>(*case_traits), kappa_tag_filename,
+                              MPI_COMM_WORLD, amsi_analysis);
     an.run();
   }
   return result;

@@ -11,6 +11,7 @@ namespace mumfim
     public:
     PropertyEvaluation(apf::Mesh * mesh,
                    std::unique_ptr<const mt::CategoryNode> cs,
+                   std::string ktf,
                    MPI_Comm c,
                    const amsi::Analysis & amsi_analysis);
     virtual ~PropertyEvaluation();
@@ -19,6 +20,7 @@ namespace mumfim
     protected:
     // util
     MPI_Comm cm;
+    std::string kappa_tag_filename;
     std::unique_ptr<const mt::CategoryNode> analysis_case;
     apf::Mesh* mesh;
     amsi::FEAStep * analysis_step_;

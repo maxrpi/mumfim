@@ -8,7 +8,8 @@ namespace mumfim
    amsi::FEAStep* createStepper(
       apf::Mesh * mesh,
       const mt::CategoryNode & analysis_case,
-      MPI_Comm comm
+      MPI_Comm comm,
+      std::string ktf = ""
     );
 
     amsi::FEAStep * createStepper(

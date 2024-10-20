@@ -20,12 +20,14 @@ namespace mumfim
 
   PropertyEvaluation::PropertyEvaluation(apf::Mesh * mesh,
                                  std::unique_ptr<const mt::CategoryNode> cs,
+                                 std::string ktf,
                                  MPI_Comm c,
                                  const amsi::Analysis & amsi_analysis)
       : cm(c)
       , analysis_case(std::move(cs))
       , mesh(mesh)
       , analysis_step_(nullptr)
+      , kappa_tag_filename(ktf)
   {
     // util data
     const auto * problem_definition =
@@ -48,7 +50,7 @@ namespace mumfim
       std::cerr << R"("solution strategy" must have "num timesteps" trait)";
       MPI_Abort(AMSI_COMM_WORLD, 1);
     }
-    analysis_step_ = createStepper(mesh, *analysis_case, cm);
+    analysis_step_ = createStepper(mesh, *analysis_case, cm, kappa_tag_filename);
   }
   PropertyEvaluation::~PropertyEvaluation()
   {

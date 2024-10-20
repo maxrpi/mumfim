@@ -35,13 +35,21 @@ namespace mumfim
 
   EffectiveKappaEvaluator::EffectiveKappaEvaluator(apf::Mesh * mesh,
                                    const mt::CategoryNode & analysis_case,
+                                   std::string ktf,
                                    MPI_Comm comm_)
       : amsi::FEAStep(mesh, analysis_case, {}, {}, "macro", comm_)
       , constitutives()
+      , kappa_tag_filename(ktf)
   {
     // Use to assign centroid. Set to true to map to origin centered unit cube.
-    mapToUnitCube(apf_mesh, centroid, true);
+    mapToUnitCube(apf_mesh, centroid, false);
     //apf::writeVtkFiles("mumfim_mesh", apf_mesh);
+    FILE *fp = fopen(kappa_tag_filename.c_str(), "r");
+    int tag_; float kappa_;
+    while(fscanf(fp, "%d, %f", &tag_, &kappa_) != EOF){
+      tappa[tag_] = (double) kappa_;
+    }
+    fclose(fp);
 
     // This makes getting vertices easier.
     apf_primary_field = apf::createLagrangeField(apf_mesh, "dummy", apf::SCALAR, 1);
@@ -88,17 +96,15 @@ namespace mumfim
       */
 
       //auto k = (*kappa_mt)();
-      double k = 1.0;
+      double k = tappa[tag];
       // This needs to be unique_ptr-ized, as it currently isn't deleted anywhere.
       apf::Matrix3x3 * kappa_r = new apf::Matrix3x3(
-        3*k  , 0.0, 0.0,
-        0.0, 2*k  , 0.0,
+        k  , 0.0, 0.0,
+        0.0, k  , 0.0,
         0.0, 0.0, k  );
       // Save for the kappa IPField assignment
       mappa[tag] = *kappa_r;
 
-      //std::cout << "continuum model type: " << continuum_model->GetType()
-                //<< "\n";
       constitutives[reinterpret_cast<apf::ModelEntity *>(gent)] =
           std::make_unique<ThermalStiffnessIntegrator>(
               apf_primary_field, apf_primary_numbering, kappa_r);
@@ -188,37 +194,36 @@ namespace mumfim
   void EffectiveKappaEvaluator::Assemble(amsi::LAS *las)
   {
     locateVertices();
-    //AssembleIntegratorIntoMat();
     AssembleIntegratorIntoMat_LA();
-    //Solve();
     Solve_LA();
   }
 
   void EffectiveKappaEvaluator::sanityCheck1(double *k_star,
                     std::vector<std::array<double,3>> &Xsc,
-                    int N, bool colMajor)
+                    int n_ext, int n_int, bool colMajor)
   {
     double sum[3] = {0.0, 0.0, 0.0};
-    for(int A=0; A < N; A++)
+    for(int A=0; A < n_ext + n_int; A++)
     {
       if(!onExterior[A]) continue;
       int sA = vert2subvert[A];
-      for(int B=0; B < N; B++)
+      for(int B=0; B < n_ext + n_int; B++)
       {
         if(!onExterior[B]) continue;
         int sB = vert2subvert[B];
+        //printf("%d, %d: %f \n", sA, sB, colMajor ? *(k_star + sA + N * sB) : *(k_star + sA * N + sB));
         for(int i=0; i < 3; i++)
         {
           sum[i] += colMajor 
-            ? *(k_star + sA + N * sB) * Xsc[sA][i]
-            : *(k_star + sA * N + sB) * Xsc[sA][i];
+            ? *(k_star + sA + n_ext * sB) * Xsc[sA][i]
+            : *(k_star + sA * n_ext + sB) * Xsc[sA][i];
         }
       }
     }
-    std::cout << " sum of kstar_AB * X_A: ";
+    std::cout << " sum of kstar_AB * X_A:\ ";
     for(int i=0; i < 3; i++)
     {
-      std::cout << sum[i] << " \n";
+      std::cout  << "  " << sum[i] << " \n";
     }
     std::cout << "\n";
   }
@@ -276,28 +281,22 @@ namespace mumfim
     }
 
     std::vector<std::array<double,3>> Xsc;
-    Xsc.reserve(n_ext);
+    Xsc.assign(n_ext, {99.99, 99.99, 99.99});
     apf::Vector3 p;
-    int ext_vert = 0;
     apf::MeshEntity *ent;
     auto *mesh_it = apf_mesh->begin(0);
-    //printf("Centroid:  %8.4f   %8.4f   %8.4f \n", centroid[0], centroid[1], centroid[2]);
     while((ent = apf_mesh->iterate(mesh_it)))
     {
       int vertNumber = apf::getNumber(apf_primary_numbering, ent, 0, 0);
       if(onExterior[vertNumber])
       {
         apf::getVector(coordinates, ent, 0, p);
-        //Xsc[ext_vert][0] = p[0] - centroid[0];
-        //Xsc[ext_vert][1] = p[1] - centroid[1];
-        //Xsc[ext_vert][2] = p[2] - centroid[2];
-        ext_vert++;
         Xsc[vert2subvert[vertNumber]][0] = p[0] - centroid[0];
         Xsc[vert2subvert[vertNumber]][1] = p[1] - centroid[1];
         Xsc[vert2subvert[vertNumber]][2] = p[2] - centroid[2];
       }
     }
-    sanityCheck1(k_star, Xsc, n_ext + n_int);
+    //sanityCheck1(k_star, Xsc, n_ext, n_int, false);
 
     apf::Matrix3x3 Km(0.0, 0.0, 0.0,
                       0.0, 0.0, 0.0,
@@ -312,7 +311,7 @@ namespace mumfim
         if(!onExterior[B]) continue;
         int sB = vert2subvert[B];
         assert(sB < n_ext);
-        k_star_AB = k_star[sA + n_ext * sB]; // ColMaj
+        k_star_AB = k_star[sA * n_ext + sB]; 
         for(int i = 0; i < 3; i++)
           for(int j = 0; j < 3; j++)
             Km[i][j] += k_star_AB * Xsc[sB][j] * Xsc[sA][i];
@@ -321,9 +320,13 @@ namespace mumfim
    
     Km = Km / model_volume;
 
-    std::cout << "MacroKappa: \n";
-    for(int i = 0; i < 3; i++)
-      printf("%8.4f  %8.4f  %8.4f\n", Km[i][0], Km[i][1], Km[i][2]);
+    std::cout << "MacroKappa: ";
+    printf("%8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n",
+            centroid[0], centroid[1], centroid[2],
+            Km[0][0], Km[1][1], Km[2][2], Km[0][1], Km[2][1], Km[0][2]);
+    //std::cout << "MacroKappa: \n";
+    //for(int i = 0; i < 3; i++)
+      //printf("%8.4f  %8.4f  %8.4f\n", Km[i][0], Km[i][1], Km[i][2]);
   
     apf::destroyNumbering(apf_primary_numbering);
     delete(Kii_LA);
@@ -377,28 +380,23 @@ void EffectiveKappaEvaluator::AssembleDOFs_LA(const std::vector<int> & dof_numbe
         int j_sv = vert2subvert[j_v];
         double value = Ke(i,j);
       
-        // When using Fortran-based LAPACK, store these in ColMajor order
         if(onExterior[i_v]) {
           assert(i_sv < n_ext);
           if(onExterior[j_v]) {
             assert(j_sv < n_ext);
-            *(Kee_LA + i_sv * n_ext + j_sv) += value; // Row major
-            //*(Kee_LA + j_sv * n_ext + i_sv) += value; // Col major
+            *(Kee_LA + i_sv * n_ext + j_sv) += value; 
           } else {
             assert(j_sv < n_int);
-            *(Kie_LA + i_sv * n_int + j_sv) += value; // Row major
-            //*(Kie_LA + j_sv * n_ext + i_sv) += value; // Col major
+            *(Kie_LA + i_sv * n_int + j_sv) += value; 
           }
         } else {
           assert(i_sv < n_int);
           if(onExterior[j_v]) {
             assert(j_sv < n_ext);
-            *(Kei_LA + i_sv * n_ext + j_sv) += value; // Row major
-            //*(Kei_LA + j_sv * n_int + i_sv) += value; // Col major
+            *(Kei_LA + i_sv * n_ext + j_sv) += value;
           } else {
             assert(j_sv < n_int);
-             *(Kii_LA + i_sv * n_int + j_sv) += value; // Row major
-            //*(Kii_LA + j_sv * n_int + i_sv) += value; // Col major
+             *(Kii_LA + i_sv * n_int + j_sv) += value;
           }
         }
       }
@@ -411,26 +409,37 @@ void EffectiveKappaEvaluator::AssembleDOFs_LA(const std::vector<int> & dof_numbe
   void EffectiveKappaEvaluator::Solve()
   {
     assert(n_ext > 0); // Don't call this before Assemble
-    Mat I, KiiInverse, Product;
-    MumfimPetscCall(MatCreateConstantDiagonal(PETSC_COMM_WORLD, n_int, n_int, n_int, n_int, 1.0, &I));
-    MumfimPetscCall(MatCreateSeqDense(PETSC_COMM_WORLD, n_int, n_int, NULL, &KiiInverse));
 
-    // This hurts me.
-    MumfimPetscCall(MatLUFactor(Kii, nullptr, nullptr, nullptr));
-    MumfimPetscCall(MatMatSolve(Kii, I, KiiInverse));
+    Mat *k_star;
+    if(n_int == 0){
+      k_star = &Kee;
 
-    MumfimPetscCall(MatProductCreate(Kei, KiiInverse, Kie, &Product));
-    MumfimPetscCall(MatProductSetType(Product, MATPRODUCT_ABC));
-    MumfimPetscCall(MatProductNumeric(Product));
+    } else {
+      Mat I, KiiInverse, Product;
+      MumfimPetscCall(MatCreateConstantDiagonal(PETSC_COMM_WORLD, n_int, n_int, n_int, n_int, 1.0, &I));
+      // This hurts me.
+      MumfimPetscCall(MatSetType(I, MATDENSE));
+      MumfimPetscCall(MatCreateSeqDense(PETSC_COMM_WORLD, n_int, n_int, NULL, &KiiInverse));
+      MumfimPetscCall(MatSetType(KiiInverse, MATDENSE));
 
-    MumfimPetscCall(MatAXPY(Kee, -1.0, Product, UNKNOWN_NONZERO_PATTERN));
+      IS isrow, iscol;
+      MatFactorInfo mfinfo;
+      MumfimPetscCall(MatGetOrdering(Kii, MATORDERINGNATURAL, &isrow, &iscol));
+      MumfimPetscCall(MatLUFactor(Kii, isrow, iscol, &mfinfo));
+      MumfimPetscCall(MatMatSolve(Kii, I, KiiInverse));
 
-    Mat &k_star = Kee;  // Kee is overwritten and should be thought of as k_star now.
+      MumfimPetscCall(MatProductCreate(Kei, KiiInverse, Kie, &Product));
+      MumfimPetscCall(MatProductSetType(Product, MATPRODUCT_ABC));
+      MumfimPetscCall(MatProductNumeric(Product));
+
+      MumfimPetscCall(MatAXPY(Kee, -1.0, Product, UNKNOWN_NONZERO_PATTERN));
+
+      k_star = &Kee;  // Kee is overwritten and should be thought of as k_star now.
+    }
 
     std::vector<std::array<double,3>> Xsc;
-    Xsc.reserve(n_ext);
+    Xsc.assign(n_ext, {99.99, 99.99, 99.99});
     apf::Vector3 p;
-    int ext_vert = 0;
     apf::MeshEntity *ent;
     auto *mesh_it = apf_mesh->begin(0);
     while((ent = apf_mesh->iterate(mesh_it)))
@@ -439,26 +448,41 @@ void EffectiveKappaEvaluator::AssembleDOFs_LA(const std::vector<int> & dof_numbe
       if(onExterior[vertNumber])
       {
         apf::getVector(coordinates, ent, 0, p);
-        Xsc[ext_vert][0] = p[0] - centroid[0];
-        Xsc[ext_vert][1] = p[1] - centroid[1];
-        Xsc[ext_vert][2] = p[2] - centroid[2];
-        ext_vert++;
+        Xsc[vert2subvert[vertNumber]][0] = p[0] - centroid[0];
+        Xsc[vert2subvert[vertNumber]][1] = p[1] - centroid[1];
+        Xsc[vert2subvert[vertNumber]][2] = p[2] - centroid[2];
       }
     }
 
-    apf::Matrix3x3 Km;
-    Km = Km * 0.0;
+    apf::Matrix3x3 Km(0.0, 0.0, 0.0,
+                      0.0, 0.0, 0.0,
+                      0.0, 0.0, 0.0);
+
     double k_star_AB;
-    for(int A = 0; A < n_ext; A++){
-      for(int B = 0; B < n_ext; B++){
-        MumfimPetscCall(MatGetValue(k_star, A, B, &k_star_AB));
+    for(int A = 0; A < n_ext + n_int; A++){
+      if(!onExterior[A]) continue;
+      PetscInt sA = vert2subvert[A];
+      for(int B = 0; B < n_ext + n_int; B++){
+        if(!onExterior[B]) continue;
+        PetscInt sB = vert2subvert[B];
+        MumfimPetscCall(MatGetValue(*k_star, sA, sB, &k_star_AB));
         for(int i = 0; i < 3; i++)
           for(int j = 0; j < 3; j++)
-            Km[i][j] += k_star_AB * Xsc[A][i] * Xsc[B][j];
+            Km[i][j] += k_star_AB * Xsc[sA][i] * Xsc[sB][j];
       }
     }
+    Km = Km / model_volume;
 
-    std::cout << "Km: \n" <<  Km << "\n"; 
+    std::cout << "MacroKappa: ";
+    printf("%8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n",
+            centroid[0], centroid[1], centroid[2],
+            Km[0][0], Km[1][1], Km[2][2], Km[0][1], Km[2][1], Km[0][2]);
+    
+    apf::destroyNumbering(apf_primary_numbering);
+    delete(Kii_LA);
+    delete(Kie_LA);
+    delete(Kei_LA);
+    delete(Kee_LA);
   }
 
   void EffectiveKappaEvaluator::AssembleIntegratorIntoMat()
@@ -472,6 +496,11 @@ void EffectiveKappaEvaluator::AssembleDOFs_LA(const std::vector<int> & dof_numbe
     MumfimPetscCall(MatSetSizes(Kie, PETSC_DECIDE, PETSC_DECIDE, n_int, n_ext));
     MumfimPetscCall(MatSetSizes(Kei, PETSC_DECIDE, PETSC_DECIDE, n_ext, n_int));
     MumfimPetscCall(MatSetSizes(Kee, PETSC_DECIDE, PETSC_DECIDE, n_ext, n_ext));
+    MumfimPetscCall(MatSetFromOptions(Kii));
+    MumfimPetscCall(MatSetFromOptions(Kie));
+    MumfimPetscCall(MatSetFromOptions(Kei));
+    MumfimPetscCall(MatSetFromOptions(Kee));
+
 
     apf::MeshIterator * mesh_region_iter = apf_mesh->begin(analysis_dim);
     while (apf::MeshEntity * mesh_entity = apf_mesh->iterate(mesh_region_iter))
@@ -488,6 +517,14 @@ void EffectiveKappaEvaluator::AssembleDOFs_LA(const std::vector<int> & dof_numbe
       apf::destroyMeshElement(mlm);
     }
     apf_mesh->end(mesh_region_iter);
+    MumfimPetscCall(MatAssemblyBegin(Kii, MAT_FINAL_ASSEMBLY));
+    MumfimPetscCall(MatAssemblyBegin(Kie, MAT_FINAL_ASSEMBLY));
+    MumfimPetscCall(MatAssemblyBegin(Kei, MAT_FINAL_ASSEMBLY));
+    MumfimPetscCall(MatAssemblyBegin(Kee, MAT_FINAL_ASSEMBLY));
+    MumfimPetscCall(MatAssemblyEnd(Kii, MAT_FINAL_ASSEMBLY));
+    MumfimPetscCall(MatAssemblyEnd(Kie, MAT_FINAL_ASSEMBLY));
+    MumfimPetscCall(MatAssemblyEnd(Kei, MAT_FINAL_ASSEMBLY));
+    MumfimPetscCall(MatAssemblyEnd(Kee, MAT_FINAL_ASSEMBLY));
   }
 
 
@@ -497,10 +534,6 @@ void EffectiveKappaEvaluator::AssembleDOFs(const std::vector<int> & dof_numbers,
     
     for(int i = 0; i < dof_numbers.size(); i++)
     {
-      MumfimPetscCall(MatAssemblyBegin(Kii, MAT_FLUSH_ASSEMBLY));
-      MumfimPetscCall(MatAssemblyBegin(Kie, MAT_FLUSH_ASSEMBLY));
-      MumfimPetscCall(MatAssemblyBegin(Kei, MAT_FLUSH_ASSEMBLY));
-      MumfimPetscCall(MatAssemblyBegin(Kee, MAT_FLUSH_ASSEMBLY));
       int i_v = dof_numbers[i];
       PetscInt i_sv = vert2subvert[i_v];
       for(int j = 0; j < dof_numbers.size(); j++)
@@ -558,7 +591,7 @@ void EffectiveKappaEvaluator::AssembleDOFs(const std::vector<int> & dof_numbers,
     }     
     printf("MIN: %7.4f  %7.4f  %7.4f\n", min[0], min[1], min[2]);
     printf("MAX: %7.4f  %7.4f  %7.4f\n", max[0], max[1], max[2]);
-    for(int j=0; j<3; j++){ centroid[j] = (max[j] - min[j]) / 2.0;}
+    for(int j=0; j<3; j++){ centroid[j] = (max[j] + min[j]) / 2.0;}
     printf("CENTROID: %7.4f  %7.4f  %7.4f\n", centroid[0], centroid[1], centroid[2]);
     if(!scale && centroid_ != nullptr){
       centroid_[0] = centroid[0];

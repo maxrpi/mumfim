@@ -24,6 +24,8 @@ namespace mumfim
     std::map<apf::ModelEntity*, std::unique_ptr<amsi::ElementalSystem>> constitutives;
     apf::Field * kappa;
     apf::Field * coordinates;
+    std::string kappa_tag_filename;
+    std::map<int, double> tappa;
     int iteration;
     //apf::Matrix3x3 Km;
     // Mesh vertex number to partitioned vertex number
@@ -51,7 +53,7 @@ namespace mumfim
     void AssembleIntegratorIntoMat_LA(void);
 
     public:
-    EffectiveKappaEvaluator(apf::Mesh* mesh, const mt::CategoryNode& analysis_case,
+    EffectiveKappaEvaluator(apf::Mesh* mesh, const mt::CategoryNode& analysis_case, std::string ktf,
                     MPI_Comm comm_ = AMSI_COMM_SCALE);
     virtual ~EffectiveKappaEvaluator();
     void Assemble(amsi::LAS*);
@@ -61,7 +63,7 @@ namespace mumfim
     apf::Field * getUField() { return apf_primary_field;}
     void sanityCheck1(double *k_star,
                     std::vector<std::array<double,3>> &Xsc,
-                    int N, bool colMajor=true);
+                    int n_ext, int n_int, bool colMajor=false);
   };
 
   // 
