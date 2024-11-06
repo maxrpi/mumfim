@@ -314,3 +314,18 @@ flycheck_*.el
 
 spack*
 .ccls
+
+#Simulation results
+Results/
+
+# untracked working space
+test/singlescale/untracked/**
+
+# VSCode configs are user-specific
+.vscode/
+
+# All kraken stuff in proprietary
+*kraken*
+
+#Spack-produced symlinks
+build-*
