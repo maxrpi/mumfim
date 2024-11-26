@@ -11,7 +11,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-convert  cube.smd cube-case1.sms cube.smb #--native-model=cube_nat.x_t
-simTranslate cube_nat.x_t cube.smd simplecube.smd
+convert  cube.smd cube-case1.sms cube.smb --native-model=cube_nat.x_t
+#simTranslate cube_nat.x_t cube.smd cube.smd
 mdlConvert cube.smd cube.dmg
-${MODEL_TRAITS_INSTALL}/smd2yaml simplecube.smd > simplecube.yaml
+#${MODEL_TRAITS_INSTALL}/smd2yaml cube.smd > cube.yaml
