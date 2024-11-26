@@ -12,13 +12,13 @@ model traits:
                 value: 11
                 geometry: ~
             material model:
-              - category name: solid_material
+              - category name: copper
                 continuum model:
                   isotropic_neohookean:
-                    kappa:
+                    kappaTensor:
                       - name: kappa
-                        type: scalar
-                        value: 1.0
+                        type: vector
+                        value: [1.0, 0.0, 1.0,   0.0, 1.0, 0.0,   1.0, 0.0, 1.0]
                         geometry: [[3, 1]]
             temperature:
               - category name: top
@@ -27,8 +27,9 @@ model traits:
                     type: scalar
                     value: 1.0
                     geometry: [[2, 1]]
+            heat_flux:
               - category name: bottom
-                T:
+                flux:
                   - name: magnitude
                     type: scalar
                     value: 2.0

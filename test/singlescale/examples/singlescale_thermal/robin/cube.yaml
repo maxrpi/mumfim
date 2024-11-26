@@ -20,18 +20,19 @@ model traits:
                         type: scalar
                         value: 1.0
                         geometry: [[3, 1]]
-            temperature:
+            convection:
               - category name: top
-                T:
+                parameters:
                   - name: magnitude
-                    type: scalar
-                    value: 1.0
+                    type: vector
+                    value: [1.0, 2.0]
                     geometry: [[2, 1]]
+            temperature:
               - category name: bottom
                 T:
                   - name: magnitude
                     type: scalar
-                    value: 2.0
+                    value: 1.0
                     geometry: [[2, 5]]
         solution strategy:
           macro:
