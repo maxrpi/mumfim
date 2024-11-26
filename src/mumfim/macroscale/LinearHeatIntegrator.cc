@@ -56,6 +56,7 @@ namespace mumfim
       B(1, i) = BT(i, 1) = Ba[i][1];
       B(2, i) = BT(i, 2) = Ba[i][2];
       Theta(i) = field_values_[i];
+      if (field_numbers_[i] >= 0) Theta(i) = 0.0;
     }
 
     apf::DynamicMatrix BT_D_B(nenodes,nenodes);
@@ -68,7 +69,7 @@ namespace mumfim
     // fe holds the residual vector, because of the incremental formulation
     // In the case of heat sources the residual will be Ke*theta - rhs
     apf::DynamicVector fe_ip(nedofs);
-    apf::multiply(Ke, Theta, fe_ip); 
+    apf::multiply(BT_D_B, Theta, fe_ip); 
     fe -=  fe_ip;
   }
 }

@@ -39,6 +39,7 @@ namespace mumfim
     //void step();
     //void iter();
     void Assemble(amsi::LAS* las) override;
+    void UpdateDOFs(const double * solution);
     //void UpdateDOFs(const double* sol) override;
     //virtual void recoverSecondaryVariables(int);
     //virtual void preRun() {};

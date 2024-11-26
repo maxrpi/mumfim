@@ -2,11 +2,13 @@
 #define AMSI_AMSINEUMANNINTEGRATORSMT_H
 #include <apf.h>
 #include <apfDynamicVector.h>
+#include <apfDynamicMatrix.h>
 #include <model_traits/ModelTrait.h>
 #include "amsiLAS.h"
 #include "apfFunctions.h"
 namespace amsi {
-  enum class NeumannBCType { pressure, traction};
+  enum class NeumannBCType { pressure, traction, robin};
+
   class MTEvaluator : public mt::MTVisitor {
     template <typename MT, typename... Args>
     void SetVector(const MT& mt, Args... args)
@@ -142,9 +144,11 @@ namespace amsi {
     double z_{};
     double t_{};
   };
+
   class NeumannIntegratorMT : public apf::Integrator {
     protected:
     LAS* las;
+    apf::DynamicMatrix Ke;
     apf::DynamicVector fe;
     apf::Field* fld;
     apf::MeshElement* me;
@@ -161,15 +165,18 @@ namespace amsi {
     void setTime(double t);
     int getnedofs();
     apf::DynamicVector& getFe() { return fe; }
+    apf::DynamicMatrix& getKe() { return Ke; }
     void inElement(apf::MeshElement* m) override;
     void outElement() override;
   };
+
   class SurfaceTractionMT : public NeumannIntegratorMT {
     public:
     SurfaceTractionMT(LAS* l, apf::Field* f, const mt::IModelTrait* mt, int o,
                       double t = 0.0);
     void atPoint(apf::Vector3 const& p, double w, double dV) final;
   };
+
   class PressureMT : public NeumannIntegratorMT {
     private:
     apf::Mesh* msh;
@@ -179,6 +186,17 @@ namespace amsi {
     void inElement(apf::MeshElement* m) final;
     void atPoint(apf::Vector3 const& p, double w, double dV) final;
   };
+
+  class RobinMT : public NeumannIntegratorMT {
+    private:
+    apf::Mesh* msh;
+    apf::MeshEntity* ent;
+    public:
+    RobinMT(LAS* l, apf::Field* f, const mt::IModelTrait* mt, int o, double t);
+    void inElement(apf::MeshElement* m) final;
+    void atPoint(apf::Vector3 const& p, double w, double dV) final;
+  };
+
   std::unique_ptr<NeumannIntegratorMT> createNeumannIntegrator(LAS* las,
                                                                apf::Field* fld,
                                                                const mt::IModelTrait* mt,

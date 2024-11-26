@@ -73,9 +73,10 @@ namespace mumfim
       MatAssemblyEnd(petsc_las->GetMatrix(), MAT_FINAL_ASSEMBLY);
 
       Vec rhs = petsc_las->GetVector(); 
-
+      MumfimPetscCall(VecScale(rhs, -1.0));
+      
       MatMultAdd(petsc_las->GetMatrix(), solution, rhs, residual);
-
+      
       an->analysis_step_->iter();
       VecRestoreArrayRead(solution, &sol);
     }
@@ -121,7 +122,7 @@ namespace mumfim
     auto * an = static_cast<FEMAnalysis *>(ctx);
     auto * petsc_las = dynamic_cast<amsi::PetscLAS *>(an->las);
     MumfimPetscCall(MatCopy(petsc_las->GetMatrix(), Amat, SAME_NONZERO_PATTERN));
-    MumfimPetscCall(MatScale(Amat, -1));
+    //MumfimPetscCall(MatScale(Amat, -1));
     return 0;
   }
 
@@ -283,9 +284,6 @@ namespace mumfim
           completed = true;
           std::cout << "Final load step converged. Case complete." << std::endl;
         }
-        std::cout << "checkpointing (macro)" << std::endl;
-        std::cout << "Rewriting at end of load step to include orientation data"
-                  << std::endl;
         analysis_step_->recoverSecondaryVariables(stp);
         checkpoint();
         stp++;

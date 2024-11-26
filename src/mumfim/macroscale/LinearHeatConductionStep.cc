@@ -28,6 +28,7 @@ namespace mumfim
     apf::zeroField(apf_primary_field);
     apf_primary_numbering = apf::createNumbering(apf_primary_field);
 
+
     kappa = apf::createIPField(apf_mesh, "kappa", apf::MATRIX, 1);
     apf::zeroField(kappa);
     // used to place kappa into IPfield by region
@@ -49,22 +50,40 @@ namespace mumfim
       const auto * continuum_model =
           mt::GetPrimaryCategoryByType(material_model, "continuum model");
       const auto * kappa_mt =
-          //mt::GetCategoryModelTraitByType<mt::MatrixMT>(continuum_model,
           mt::GetCategoryModelTraitByType<mt::ScalarMT>(continuum_model,
                                                         "kappa");
-      if (kappa_mt == nullptr)
+      const auto * kappa_tensor_mt =
+          mt::GetCategoryModelTraitByType<mt::VectorMT>(continuum_model,
+                                                        "kappaTensor");
+
+      if(kappa_mt != nullptr && kappa_tensor_mt != nullptr){
+        std::cerr << "Specifying both \"kappa\" and \"kappaTensor\" for the "
+                      "same material is not allowed.\n";
+        MPI_Abort(AMSI_COMM_WORLD, 1);
+      }
+      if (kappa_mt == nullptr && kappa_tensor_mt == nullptr)
       {
-        std::cerr << " \"kappa\" (thermal conductivity) is required for "
-                     "the continuum model.\n";
+        std::cerr << " \"kappa\" or \"kappaTensor\" (thermal conductivity) is "
+                     "required for the continuum model.\n";
         MPI_Abort(AMSI_COMM_WORLD, 1);
       }
 
-      auto k = (*kappa_mt)();
       // This needs to be unique_ptr-ized, as it currently isn't deleted anywhere.
-      apf::Matrix3x3 * kappa_r = new apf::Matrix3x3(
-        k  , 0.0, 0.0,
-        0.0, k  , 0.0,
-        0.0, 0.0, k  );
+      apf::Matrix3x3 * kappa_r;
+
+      if(kappa_mt != nullptr){
+        auto k = (*kappa_mt)();
+        kappa_r = new apf::Matrix3x3(
+          k  , 0.0, 0.0,
+          0.0, k  , 0.0,
+          0.0, 0.0, k  );
+      } else {
+        kappa_r = new apf::Matrix3x3(
+          (*kappa_tensor_mt)(0), (*kappa_tensor_mt)(1), (*kappa_tensor_mt)(2), 
+          (*kappa_tensor_mt)(3), (*kappa_tensor_mt)(4), (*kappa_tensor_mt)(5), 
+          (*kappa_tensor_mt)(6), (*kappa_tensor_mt)(7), (*kappa_tensor_mt)(8)
+        );
+      }
       // Save for the kappa IPField assignment
       mappa[tag] = *kappa_r;
 
@@ -83,38 +102,61 @@ namespace mumfim
       int tag = mesh->getModelTag(mesh->toModel(ent));
       apf::setMatrix(kappa, ent, 0, mappa.at(tag));
     }
-
+    
     neumann_bcs.push_back(
         amsi::NeumannBCEntry{ .categories = {"heat_flux"},
-                              .mt_name = "x",
+                              .mt_name = "flux",
                               .mt_type = amsi::NeumannBCType::pressure});
-                              //.mt_type = amsi::NeumannBCType::normal_flux});
     neumann_bcs.push_back(
-        amsi::NeumannBCEntry{ .categories = {"heat_flux"},
-                              .mt_name = "y",
-                              .mt_type = amsi::NeumannBCType::pressure});
-                              //.mt_type = amsi::NeumannBCType::normal_flux});
-    neumann_bcs.push_back(
-        amsi::NeumannBCEntry{ .categories = {"heat_flux"},
-                              .mt_name = "z",
-                              .mt_type = amsi::NeumannBCType::pressure});
-                              //.mt_type = amsi::NeumannBCType::normal_flux});
+        amsi::NeumannBCEntry{ .categories = {"convection"},
+                              .mt_name = "parameters",
+                              .mt_type = amsi::NeumannBCType::robin});
     dirichlet_bcs.push_back(
         amsi::DirichletBCEntry{ .categories = {"temperature"},
-                                .mt_name = "temperature"});
+                                .mt_name = "T"});
   }
 
   LinearHeatConductionStep::~LinearHeatConductionStep()
   {
     apf::destroyField(apf_primary_field);
-    apf::destroyField(flux);
     apf::destroyField(kappa);
-    apf::destroyField(sources);
   }
   void LinearHeatConductionStep::Assemble(amsi::LAS * las)
   {
-    ApplyBC_Neumann(las);
+    // Note that AssembleIntegratorIntoLAS zeros out the LAS matrix 
+    // and vector, so add in the NeumannBCs after, not before.
     AssembleIntegratorIntoLAS(las);
+    ApplyBC_Neumann(las);
+  }
+
+  void LinearHeatConductionStep::UpdateDOFs(const double * solution)
+  {
+    int num_components = apf::countComponents(apf_primary_field);
+    assert(num_components == 1 && "Nonscalar field for temperature");
+
+    apf::MeshEntity * mesh_ent = NULL;
+    for (int ii = 0; ii < analysis_dim; ii++)
+    {
+      for (apf::MeshIterator * it = apf_mesh->begin(ii);
+           (mesh_ent = apf_mesh->iterate(it));) {
+
+        if (apf_mesh->isOwned(mesh_ent)) {
+          apf::FieldShape * shape_function = apf::getShape(apf_primary_field);
+
+          for (int jj = 0;
+               jj < shape_function->countNodesOn(apf_mesh->getType(mesh_ent));
+               jj++) {
+
+            if (!apf::isFixed(apf_primary_numbering, mesh_ent, jj, 0)) {
+              int global_number = getNumber(apf_primary_numbering, mesh_ent, jj, 0);
+              auto temperature = solution[global_number - first_local_dof];
+              apf::setScalar(apf_primary_field, mesh_ent, jj, temperature);
+            }
+          }
+        }
+      }
+    }
+    apf::synchronize(apf_primary_field);
   }
 
 
@@ -123,7 +165,6 @@ namespace mumfim
   {
     setSimulationTime(T);
     LinearSolver(this, las);
-    apf::writeASCIIVtkFiles("foo", this->apf_mesh);
     las->iter();
   }
 

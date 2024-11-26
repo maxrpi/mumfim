@@ -103,8 +103,10 @@ namespace mumfim
     // For the LinearTissueStep, the coordinate field is assumed to be the meshes
     // coordinate field. This is unlike what's used in NonlinearTissueStep and
     // MultiscaleTissueStep
-    ApplyBC_Neumann(las);
+    // Note that AssembleIntegratorIntoLAS zeros out the LAS matrix 
+    // and vector, so add in the NeumannBCs after, not before.
     AssembleIntegratorIntoLAS(las);
+    ApplyBC_Neumann(las);
   }
 
   amsi::ElementalSystem * LinearTissueStep::getIntegrator(
