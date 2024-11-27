@@ -39,19 +39,14 @@ namespace mumfim
                                    MPI_Comm comm_)
       : amsi::FEAStep(mesh, analysis_case, {}, {}, "macro", comm_)
       , constitutives()
-      , kappa_tag_filename(ktf)
   {
     // Use to assign centroid. Set to true to map to origin centered unit cube.
     mapToUnitCube(apf_mesh, centroid, false);
-    //apf::writeVtkFiles("mumfim_mesh", apf_mesh);
-    FILE *fp = fopen(kappa_tag_filename.c_str(), "r");
-    int tag_; float kappa_;
-    while(fscanf(fp, "%d, %f", &tag_, &kappa_) != EOF){
-      tappa[tag_] = (double) kappa_;
-    }
-    fclose(fp);
 
-    // This makes getting vertices easier.
+    //apf::writeVtkFiles("mumfim_mesh", apf_mesh);
+    auto tappa = read_kappa_map(ktf);
+
+    // This makes getting vertices easier. There's probably an easier way than creating an entire field.
     apf_primary_field = apf::createLagrangeField(apf_mesh, "dummy", apf::SCALAR, 1);
     apf::zeroField(apf_primary_field);
     
@@ -69,39 +64,21 @@ namespace mumfim
 
     amsi::applyUniqueRegionTags(apf_mesh);
     
-    static constexpr int dimension = 3;
+    // Build kappa tensors and and attach them to geometry
     auto * gmodel = mesh->getModel();
     struct gmi_ent * gent;
-    auto * it = gmi_begin(gmodel, dimension);
+    auto * it = gmi_begin(gmodel, 3);
     while ((gent = gmi_next(gmodel, it)))
     {
       int tag = gmi_tag(gmodel, gent);
-      const auto * model_traits =
-          problem_definition.associated->Find({dimension, tag});
-      const auto * material_model =
-          mt::GetCategoryByType(model_traits, "material model");
-      const auto * continuum_model =
-          mt::GetPrimaryCategoryByType(material_model, "continuum model");
-      const auto * kappa_mt =
-          //mt::GetCategoryModelTraitByType<mt::MatrixMT>(continuum_model,
-          mt::GetCategoryModelTraitByType<mt::ScalarMT>(continuum_model,
-                                                        "kappa");
-      /*
-      if (kappa_mt == nullptr)
-      {
-        std::cerr << " \"kappa\" (thermal conductivity) is required for "
-                     "the continuum model.\n";
-        MPI_Abort(AMSI_COMM_WORLD, 1);
-      }
-      */
 
-      //auto k = (*kappa_mt)();
       double k = tappa[tag];
-      // This needs to be unique_ptr-ized, as it currently isn't deleted anywhere.
+      
       apf::Matrix3x3 * kappa_r = new apf::Matrix3x3(
         k  , 0.0, 0.0,
         0.0, k  , 0.0,
         0.0, 0.0, k  );
+
       // Save for the kappa IPField assignment
       mappa[tag] = *kappa_r;
 
@@ -111,6 +88,8 @@ namespace mumfim
     }
     gmi_end(gmodel, it);
 
+    // Iterate over the mesh elements, populating a cell-based field for kappa
+    // mostly for visualization later
     model_volume = 0.0;
     apf::MeshEntity *ent;
     auto *mesh_it = mesh->begin(3);
@@ -129,6 +108,7 @@ namespace mumfim
     apf::destroyField(apf_primary_field);
     apf::destroyField(kappa);
   }
+
 
   // Populate the interior and exterior member vectors with (apf::MeshEntity*) vertices
   void EffectiveKappaEvaluator::locateVertices(void)
@@ -619,6 +599,17 @@ void EffectiveKappaEvaluator::AssembleDOFs(const std::vector<int> & dof_numbers,
       centroid_[2] = 0.0; 
     }
 
+  }
+
+  std::map<int, double> read_kappa_map(std::string kappa_tag_filename){
+    std::map<int, double> tappa;
+    FILE *fp = fopen(kappa_tag_filename.c_str(), "r");
+    int tag_; float kappa_;
+    while(fscanf(fp, "%d, %f", &tag_, &kappa_) != EOF){
+      tappa[tag_] = (double) kappa_;
+    }
+    fclose(fp);
+    return tappa;
   }
 
 }

@@ -24,8 +24,7 @@ namespace mumfim
     std::map<apf::ModelEntity*, std::unique_ptr<amsi::ElementalSystem>> constitutives;
     apf::Field * kappa;
     apf::Field * coordinates;
-    std::string kappa_tag_filename;
-    std::map<int, double> tappa;
+    
     int iteration;
     //apf::Matrix3x3 Km;
     // Mesh vertex number to partitioned vertex number
@@ -69,6 +68,7 @@ namespace mumfim
   // 
   bool isTranspose(int N, int M, double *A, double* B, double tol);
   void mapToUnitCube(apf::Mesh *mesh, double *centroid, bool scale);
+  std::map<int, double> read_kappa_map(std::string kappa_tag_filename);
 
 
 }
