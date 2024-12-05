@@ -7,7 +7,7 @@ elif ( test -f /etc/redhat-release && grep -q "9\." "/etc/redhat-release" ) ; th
   module load gcc/12.3.0-iil3lno mpich/4.1.1-xpoyz4t
   module load simmetrix-simmodsuite/2024.1-240620dev-g4avy72 
   module load simmetrix/simModeler/2024.1-240620-dev
-  module load parasolid
+  module load parasolid/34.0
   #module load pumi/develop-simmodsuite-2024.0-240119dev-int32-shared-re4vh42
   module load pumi/develop-simmodsuite-2024.1-240522dev-int32-shared-r4pf2fm
   module load gdb
