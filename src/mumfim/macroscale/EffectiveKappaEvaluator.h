@@ -22,7 +22,6 @@ namespace mumfim
   {
     protected:
     std::map<apf::ModelEntity*, std::unique_ptr<amsi::ElementalSystem>> constitutives;
-    apf::Field * kappa;
     apf::Field * coordinates;
     
     int iteration;

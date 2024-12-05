@@ -57,11 +57,6 @@ namespace mumfim
     // These are convenient to have at various points.
     coordinates = apf_mesh->getCoordinateField(); 
 
-    kappa = apf::createIPField(apf_mesh, "kappa", apf::MATRIX, 1);
-    apf::zeroField(kappa);
-    // used to place kappa into IPfield by region
-    std::map<int, apf::Matrix3x3> mappa;
-
     amsi::applyUniqueRegionTags(apf_mesh);
     
     // Build kappa tensors and and attach them to geometry
@@ -70,17 +65,12 @@ namespace mumfim
     auto * it = gmi_begin(gmodel, 3);
     while ((gent = gmi_next(gmodel, it)))
     {
-      int tag = gmi_tag(gmodel, gent);
-
-      double k = tappa[tag];
+      double k = tappa[gmi_tag(gmodel, gent)];
       
       apf::Matrix3x3 * kappa_r = new apf::Matrix3x3(
         k  , 0.0, 0.0,
         0.0, k  , 0.0,
         0.0, 0.0, k  );
-
-      // Save for the kappa IPField assignment
-      mappa[tag] = *kappa_r;
 
       constitutives[reinterpret_cast<apf::ModelEntity *>(gent)] =
           std::make_unique<ThermalStiffnessIntegrator>(
@@ -88,25 +78,17 @@ namespace mumfim
     }
     gmi_end(gmodel, it);
 
-    // Iterate over the mesh elements, populating a cell-based field for kappa
-    // mostly for visualization later
     model_volume = 0.0;
     apf::MeshEntity *ent;
     auto *mesh_it = mesh->begin(3);
-    int rcount = 0;
     while((ent = mesh->iterate(mesh_it)))
-    {
-      int tag = mesh->getModelTag(mesh->toModel(ent));
-      apf::setMatrix(kappa, ent, 0, mappa.at(tag));
       model_volume += apf::measure(apf_mesh, ent);
-    }
   
   }
 
   EffectiveKappaEvaluator::~EffectiveKappaEvaluator()
   {
     apf::destroyField(apf_primary_field);
-    apf::destroyField(kappa);
   }
 
 
