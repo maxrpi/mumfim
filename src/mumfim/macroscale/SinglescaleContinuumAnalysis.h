@@ -4,10 +4,10 @@
 
 namespace mumfim
 {
-  class SinglescaleTissueAnalysis : public FEMAnalysis
+  class SinglescaleContinuumAnalysis : public FEMAnalysis
   {
     public:
-    SinglescaleTissueAnalysis(apf::Mesh * mesh,
+    SinglescaleContinuumAnalysis(apf::Mesh * mesh,
     std::unique_ptr<const mt::CategoryNode> cs,
         MPI_Comm c,
     const amsi::Analysis & amsi_analysis);

@@ -1,6 +1,6 @@
 #include "SinglescaleTissueAnalysis.h"
 #include "StepperFactory.h"
-mumfim::SinglescaleTissueAnalysis::SinglescaleTissueAnalysis(
+mumfim::SinglescaleContinuumAnalysis::SinglescaleContinuumAnalysis(
     apf::Mesh * mesh,
     std::unique_ptr<const mt::CategoryNode> cs,
     MPI_Comm c,

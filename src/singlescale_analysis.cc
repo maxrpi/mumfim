@@ -36,6 +36,8 @@ std::string mesh_filename("");
 std::string analysis_case("");
 std::string model_traits_filename;
 std::string amsi_options_filename;
+std::string quadpoint_list;
+std::string kappa_list;
 // std::string vol_log("volume");
 bool parse_options(int & argc, char **& argv)
 {
@@ -51,10 +53,12 @@ bool parse_options(int & argc, char **& argv)
         {"balancing", required_argument, 0, 'b'},
         {"case", required_argument, 0, 'c'},
         {"amsi", required_argument, 0, 'a'},
+        {"dropqp", required_argument, 0, 'q'},
+        {"readqp", required_argument, 0, 'Q'}
     };
     int option_index = 0;
     int option =
-        getopt_long(argc, argv, "hl:m:g:b:c:a:", long_options, &option_index);
+        getopt_long(argc, argv, "hl:m:g:b:c:a:q:Q:", long_options, &option_index);
     switch (option)
     {
       case 'h':
@@ -75,6 +79,12 @@ bool parse_options(int & argc, char **& argv)
         break;
       case 'a':
         amsi_options_filename = optarg;
+        break;
+      case 'q':
+        quadpoint_list = optarg;
+        break;
+      case 'Q':
+        kappa_list = optarg;
         break;
       case -1:
         // end of options
@@ -123,7 +133,7 @@ int main(int argc, char ** argv)
       std::cerr << "\"" << analysis_case << "\" is not a valid case name.\n";
       MPI_Abort(AMSI_COMM_WORLD, 1);
     }
-    mumfim::SinglescaleTissueAnalysis an(mesh,
+    mumfim::SinglescaleContinuumAnalysis an(mesh,
                               std::make_unique<mt::CategoryNode>(*case_traits),
                               AMSI_COMM_WORLD, amsi_analysis);
     an.run();
