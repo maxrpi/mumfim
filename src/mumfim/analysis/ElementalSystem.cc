@@ -6,7 +6,7 @@
 namespace amsi
 {
   // this function works for both scalar and vector fields
-  static void GetNodalFieldValuesAndNumbers(apf::Field* field,
+  void ElementalSystem::GetNodalFieldValuesAndNumbers(apf::Field* field,
                                             apf::Numbering* numbering,
                                             apf::Element *e, int nenodes, apf::MeshEntity *mesh_entity,
                                             std::vector<int>& dof_numbers, std::vector<double> & values) {

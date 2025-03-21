@@ -19,6 +19,10 @@ namespace amsi
     int num_field_components;
     std::vector<double> field_values_;
     std::vector<int> field_numbers_;
+    void GetNodalFieldValuesAndNumbers(apf::Field* field,
+                                            apf::Numbering* numbering,
+                                            apf::Element *e, int nenodes, apf::MeshEntity *mesh_entity,
+                                            std::vector<int>& dof_numbers, std::vector<double> & values);
   public:
     ElementalSystem(apf::Field * f, apf::Numbering* numbering, int o);
     virtual void inElement(apf::MeshElement *);

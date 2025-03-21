@@ -37,7 +37,48 @@ namespace mumfim
   {
     ;
   }
+  LinearHeatIntegrator::LinearHeatIntegrator(apf::Field * temperature, apf::Numbering* numbering, apf::Field *kappa)
+    : amsi::ElementalSystem(temperature,numbering, 1)
+    , T_(temperature)
+    , K_(kappa)
+    , D(3,3)
+  {
+    ;
+  }
 
+  void LinearHeatIntegrator::inElement(apf::MeshElement * ME)
+  {
+    me = ME;
+    e = apf::createElement(f, me);
+    nenodes = apf::countNodes(e);
+    int new_nedofs = nenodes * num_field_components;
+    bool reallocate = nedofs != new_nedofs;
+    nedofs = new_nedofs;
+    apf::MeshEntity * mesh_entity = getMeshEntity(ME);
+    ElementalSystem::GetNodalFieldValuesAndNumbers(f, numbering_, e, nenodes, mesh_entity,
+                                  field_numbers_, field_values_);
+    apf::Matrix3x3 D33;
+    // We have assigned to the K_ (kappa) field. Otherwise, we will have assigned to D already.
+    if(K_ != nullptr){
+      apf::getMatrix(K_, mesh_entity, 0, D33);
+      D(0,0) = D33[0][0];
+      D(0,1) = D33[0][1];
+      D(0,2) = D33[0][2];
+      D(1,0) = D33[1][0];
+      D(1,1) = D33[1][1];
+      D(1,2) = D33[1][2];
+      D(2,0) = D33[2][0];
+      D(2,1) = D33[2][1];
+      D(2,2) = D33[2][2];
+    }
+    if (reallocate)
+    {
+      Ke.setSize(nedofs, nedofs);
+      fe.setSize(nedofs);
+    }
+    Ke.zero();
+    fe.zero();
+  }
 
   void LinearHeatIntegrator::atPoint(apf::Vector3 const &p, double w, double dV)
   {
