@@ -446,9 +446,11 @@ namespace amsi {
             apf::getElementNumbers(nm, e, dofs);
             las->AddToVector(integrator->getnedofs(), &dofs[0],
                              &integrator->getFe()[0]);
-            las->AddToMatrix(integrator->getnedofs(), &dofs[0],
-                             integrator->getnedofs(), &dofs[0],
-                             &(integrator->getKe()(0,0)) );
+            if(integrator_type == amsi::NeumannBCType::robin){
+              las->AddToMatrix(integrator->getnedofs(), &dofs[0],
+                              integrator->getnedofs(), &dofs[0],
+                              &(integrator->getKe()(0,0)) );
+            }
             apf::destroyMeshElement(mnt);
           }
         }
