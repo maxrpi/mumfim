@@ -8,6 +8,7 @@ namespace mumfim{
   {
   apf::Field * T_;
   apf::Field * f_;
+  apf::Field * K_ = nullptr;
   apf::DynamicMatrix D;  // elemental kappa
   apf::Matrix3x3 * getIsotropicKappa(double kii);
   apf::Matrix3x3 * getFullKappa(double xx, double yy, double zz,
@@ -19,6 +20,7 @@ namespace mumfim{
     bool includesBodyForces() final { return true; }
     void atPoint(apf::Vector3 const &p,
       double w, double dV);
+    void inElement(apf::MeshElement *);
 
   protected:
   };
