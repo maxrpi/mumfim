@@ -2,6 +2,7 @@
 
 #include <amsiControlService.h>
 #include <apfFunctions.h>
+#include <apfFieldData.h>
 #include <apfLabelRegions.h>
 
 #include <array>
@@ -28,16 +29,70 @@ namespace mumfim
     apf::zeroField(apf_primary_field);
     apf_primary_numbering = apf::createNumbering(apf_primary_field);
 
-
     kappa = apf::createIPField(apf_mesh, "kappa", apf::MATRIX, 1);
     apf::zeroField(kappa);
+
+    bool dumpqpmap = false, readqmap = false;
+    if(dumpqpmap)
+    {
+      FILE *fp;
+      fp = fopen("quadpointmap.txt", "w");
+
+      apf::MeshTag* mesh_tag = apf_mesh->createIntTag("index", 1);
+      int index[1]= {0};
+      apf::MeshEntity *ent;
+      auto *mesh_it = apf_mesh->begin(3);
+      while((ent = apf_mesh->iterate(mesh_it)))
+      {
+        apf_mesh->setIntTag(ent, mesh_tag, index);
+        int model_tag = apf_mesh->getModelTag(mesh->toModel(ent));
+        apf::MeshElement* e = apf::createMeshElement(apf_mesh,ent);
+        apf::Vector3 point;
+        apf::getIntPoint(e,0,0,point);
+        apf::Vector3 xyz;
+        apf::mapLocalToGlobal(e, point, xyz);
+        apf::destroyMeshElement(e);
+        fprintf(fp, "%g, %g, %g, %d, %d\n", xyz[0], xyz[1], xyz[2], model_tag, *index);
+        index[0]++;
+      }
+      fclose(fp);
+    } 
+    if(readqmap) 
+    {
+      FILE *fp;
+      fp = fopen("kappavalues.txt", "r");
+      int mesh_index;
+      std::vector<apf::Matrix3x3*> kappa_me; kappa_me.reserve(apf_mesh->count(3));
+      double kxx, kyy, kzz, kxy, kyz, kzx;
+      while(fscanf(fp, "%d, %lf, %lf, %lf, %lf, %lf, %lf\n",
+            &mesh_index, &kxx, &kyy, &kzz, &kxy, &kyz, &kzx) == 7)
+      {
+        apf::Matrix3x3 *kmatrix = new apf::Matrix3x3(
+          kxx, kxy, kzx,
+          kxy, kyy, kyz,
+          kzx, kyz, kzz
+        );
+        kappa_me[mesh_index] = kmatrix; 
+      }
+      fclose(fp);
+      mesh_index = 0;
+      apf::MeshEntity *ent;
+      auto *mesh_it = apf_mesh->begin(3);
+      while((ent = apf_mesh->iterate(mesh_it)))
+      {
+        apf::setMatrix(kappa, ent, 0, *kappa_me[mesh_index]);
+        mesh_index++;
+      }
+      kappa_me.clear();
+    } 
+
     // used to place kappa into IPfield by region
     std::map<int, apf::Matrix3x3> mappa;
 
     amsi::applyUniqueRegionTags(apf_mesh);
     
     static constexpr int dimension = 3;
-    auto * gmodel = mesh->getModel();
+    auto * gmodel = apf_mesh->getModel();
     struct gmi_ent * gent;
     auto * it = gmi_begin(gmodel, dimension);
     while ((gent = gmi_next(gmodel, it)))
@@ -61,7 +116,7 @@ namespace mumfim
                       "same material is not allowed.\n";
         MPI_Abort(AMSI_COMM_WORLD, 1);
       }
-      if (kappa_mt == nullptr && kappa_tensor_mt == nullptr)
+      if (!readqmap && kappa_mt == nullptr && kappa_tensor_mt == nullptr)
       {
         std::cerr << " \"kappa\" or \"kappaTensor\" (thermal conductivity) is "
                      "required for the continuum model.\n";
@@ -87,21 +142,30 @@ namespace mumfim
       // Save for the kappa IPField assignment
       mappa[tag] = *kappa_r;
 
-      std::cout << "continuum model type: " << continuum_model->GetType()
-                << "\n";
+      if(readqmap)
+      {
+      constitutives[reinterpret_cast<apf::ModelEntity *>(gent)] =
+          std::make_unique<LinearHeatIntegrator>(
+              apf_primary_field, apf_primary_numbering, kappa);
+      } else 
+      {
       constitutives[reinterpret_cast<apf::ModelEntity *>(gent)] =
           std::make_unique<LinearHeatIntegrator>(
               apf_primary_field, apf_primary_numbering, kappa_r);
+      }
     }
     gmi_end(gmodel, it);
 
+    /*
     apf::MeshEntity *ent;
-    auto *mesh_it = mesh->begin(3);
-    while((ent = mesh->iterate(mesh_it)))
+    auto *mesh_it = apf_mesh->begin(3);
+    while((ent = apf_mesh->iterate(mesh_it)))
     {
-      int tag = mesh->getModelTag(mesh->toModel(ent));
-      apf::setMatrix(kappa, ent, 0, mappa.at(tag));
+      int model_tag = apf_mesh->getModelTag(mesh->toModel(ent));
+      apf::setMatrix(kappa, ent, 0, mappa.at(model_tag));
     }
+    */
+
     
     neumann_bcs.push_back(
         amsi::NeumannBCEntry{ .categories = {"heat_flux"},
