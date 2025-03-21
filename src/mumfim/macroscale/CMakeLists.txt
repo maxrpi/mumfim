@@ -13,7 +13,7 @@ set(biotissue_src_files
         FEMAnalysis.cc
         MultiscaleTissueAnalysis.cc
         PropertyEvaluation.cc
-        SinglescaleTissueAnalysis.cc
+        SinglescaleContinuumAnalysis.cc
         StepperFactory.cc
         ThermalStiffnessIntegrator.cc
         UpdatedLagrangianMaterialIntegrator.cc

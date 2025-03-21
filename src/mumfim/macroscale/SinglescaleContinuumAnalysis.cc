@@ -1,4 +1,4 @@
-#include "SinglescaleTissueAnalysis.h"
+#include "SinglescaleContinuumAnalysis.h"
 #include "StepperFactory.h"
 mumfim::SinglescaleContinuumAnalysis::SinglescaleContinuumAnalysis(
     apf::Mesh * mesh,
