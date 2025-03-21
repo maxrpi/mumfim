@@ -283,12 +283,9 @@ namespace mumfim
     Km = Km / model_volume;
 
     std::cout << "MacroKappa: ";
-    printf("%8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n",
+    printf("%8.4f  %8.4f  %8.4f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n",
             centroid[0], centroid[1], centroid[2],
             Km[0][0], Km[1][1], Km[2][2], Km[0][1], Km[2][1], Km[0][2]);
-    //std::cout << "MacroKappa: \n";
-    //for(int i = 0; i < 3; i++)
-      //printf("%8.4f  %8.4f  %8.4f\n", Km[i][0], Km[i][1], Km[i][2]);
   
     apf::destroyNumbering(apf_primary_numbering);
     delete(Kii_LA);
@@ -436,7 +433,7 @@ void EffectiveKappaEvaluator::AssembleDOFs_LA(const std::vector<int> & dof_numbe
     Km = Km / model_volume;
 
     std::cout << "MacroKappa: ";
-    printf("%8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f  %8.4f\n",
+    printf("%8.4f  %8.4f  %8.4f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n",
             centroid[0], centroid[1], centroid[2],
             Km[0][0], Km[1][1], Km[2][2], Km[0][1], Km[2][1], Km[0][2]);
     
