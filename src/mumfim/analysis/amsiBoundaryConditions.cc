@@ -428,19 +428,11 @@ namespace amsi {
           const auto& bc_name = path.mt_name;
           auto* bc = mt::GetCategoryModelTraitByType(nd, bc_name);
           if (bc != nullptr) {
-            NeumannIntegratorMT* integrator;
-            auto* mnt = apf::createMeshElement(mesh, e);
             auto integrator_type = path.mt_type;
-            auto rslt = integrators.find(integrator_type);
-            if (rslt == integrators.end()) {
-              auto r = integrators.emplace(
-                  integrator_type,
-                  createNeumannIntegrator(las, fld, bc, 1, t, integrator_type));
-              integrator = r.first->second.get();
-            }
-            else {
-              integrator = rslt->second.get();
-            }
+            std::unique_ptr<NeumannIntegratorMT> integrator = 
+                  createNeumannIntegrator(las, fld, bc, 1, t, integrator_type);
+
+            auto* mnt = apf::createMeshElement(mesh, e);
             integrator->process(mnt);
             apf::NewArray<int> dofs;
             apf::getElementNumbers(nm, e, dofs);
