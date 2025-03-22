@@ -7,7 +7,7 @@
 #include "amsiLAS.h"
 #include "apfFunctions.h"
 namespace amsi {
-  enum class NeumannBCType { pressure, traction, robin};
+  enum class NeumannBCType { pressure, traction,  scalarflux, robin};
 
   class MTEvaluator : public mt::MTVisitor {
     template <typename MT, typename... Args>
@@ -183,6 +183,16 @@ namespace amsi {
     apf::MeshEntity* ent;
     public:
     PressureMT(LAS* l, apf::Field* f, const mt::IModelTrait* mt, int o, double t);
+    void inElement(apf::MeshElement* m) final;
+    void atPoint(apf::Vector3 const& p, double w, double dV) final;
+  };
+
+  class ScalarfluxMT : public NeumannIntegratorMT {
+    private:
+    apf::Mesh* msh;
+    apf::MeshEntity* ent;
+    public:
+    ScalarfluxMT(LAS* l, apf::Field* f, const mt::IModelTrait* mt, int o, double t);
     void inElement(apf::MeshElement* m) final;
     void atPoint(apf::Vector3 const& p, double w, double dV) final;
   };

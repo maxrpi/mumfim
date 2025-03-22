@@ -170,7 +170,7 @@ namespace mumfim
     neumann_bcs.push_back(
         amsi::NeumannBCEntry{ .categories = {"heat_flux"},
                               .mt_name = "flux",
-                              .mt_type = amsi::NeumannBCType::pressure});
+                              .mt_type = amsi::NeumannBCType::scalarflux});
     neumann_bcs.push_back(
         amsi::NeumannBCEntry{ .categories = {"convection"},
                               .mt_name = "parameters",

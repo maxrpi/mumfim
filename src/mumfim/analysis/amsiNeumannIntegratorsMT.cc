@@ -87,6 +87,7 @@ namespace amsi {
       std::cerr << "The Pressure model trait is expected to have 1 component.\n";
       exit(1);
     }
+    assert(nfcmps == 3 && "PressureMT only defined for 3-component fields");
     apf::NewArray<double> N;
     std::array<double,3> pressure;
     apf::getShapeValues(e, p, N);
@@ -95,6 +96,39 @@ namespace amsi {
     pressure[0] = nrml.x()*vals[0];
     pressure[1] = nrml.y()*vals[0];
     pressure[2] = nrml.z()*vals[0];
+    double wxdV = w * dV;
+    for (int nd = 0; nd < nenodes; nd++) {
+      for (int cmp= 0; cmp < nfcmps; cmp++) {
+        fe(nd * nfcmps + cmp) = N[nd] * pressure[cmp] * wxdV;
+      }
+    }
+  }
+
+  ScalarfluxMT::ScalarfluxMT(LAS *l, apf::Field *f, const mt::IModelTrait *mt, int o,
+                         double t)
+      : NeumannIntegratorMT(l, f, mt, o, t), msh(apf::getMesh(f))
+  {
+  }
+
+  void ScalarfluxMT::inElement(apf::MeshElement *m)
+  {
+    NeumannIntegratorMT::inElement(m);
+    ent = apf::getMeshEntity(m);
+    assert(apf::getDimension(m) == 2 && "ScalarfluxMT only available on faces");
+  }
+
+  void ScalarfluxMT::atPoint(const apf::Vector3 &p, double w, double dV)
+  {
+    std::vector<double> vals;
+    apf::Vector3 xyz;
+    apf::mapLocalToGlobal(me, p, xyz);
+    mt_evaluator(tm, xyz[0], xyz[1], xyz[2], vals);
+    if (vals.size() != 1) {
+      std::cerr << "The Scalarflux model trait is expected to have 1 component.\n";
+      exit(1);
+    }
+    apf::NewArray<double> N;
+    apf::getShapeValues(e, p, N);
     double wxdV = w * dV;
     for (int nd = 0; nd < nenodes; nd++) {
       for (int cmp= 0; cmp < nfcmps; cmp++) {
@@ -157,6 +191,8 @@ namespace amsi {
         return std::make_unique<SurfaceTractionMT>(las,fld,mt, o,t);
       case NeumannBCType::pressure:
         return std::make_unique<PressureMT>(las,fld,mt,o,t);
+      case NeumannBCType::scalarflux:
+        return std::make_unique<ScalarfluxMT>(las,fld,mt,o,t);
       case NeumannBCType::robin:
         return std::make_unique<RobinMT>(las,fld,mt,o,t);
     }
