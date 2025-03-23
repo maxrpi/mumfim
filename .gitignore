@@ -10,6 +10,7 @@ build_release/
 simmetrix_log
 tags
 compile_commands.json
+**/.vscode/**
 
 # Prerequisites
 *.d
@@ -313,6 +314,7 @@ flycheck_*.el
 *.pyc
 
 spack*
+**/build-*
 .ccls
 
 #Simulation results
@@ -329,3 +331,14 @@ test/singlescale/untracked/**
 
 #Spack-produced symlinks
 build-*
+
+*.vtu
+*.pvtu
+*.yaml
+*.xmt_txt
+*.x_t
+*.smd
+*.smb
+*.sms
+*.dmg
+petsc_*mtx*
