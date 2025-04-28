@@ -10,7 +10,10 @@ namespace mumfim
     SinglescaleContinuumAnalysis(apf::Mesh * mesh,
     std::unique_ptr<const mt::CategoryNode> cs,
         MPI_Comm c,
-    const amsi::Analysis & amsi_analysis);
+    const amsi::Analysis & amsi_analysis,
+    std::unordered_map<std::string, std::string> filenames_ = {}
+  );
+  std::unordered_map<std::string, std::string> filenames;
   };
 }  // namespace mumfim
 #endif

@@ -10,8 +10,8 @@ namespace mumfim
  amsi::FEAStep * createStepper(
       apf::Mesh * mesh,
       const mt::CategoryNode & analysis_case,
-      MPI_Comm com,
-      std::string ktf
+      std::unordered_map<std::string, std::string> filenames,
+      MPI_Comm com
   )
   {
     amsi::FEAStep *stepper = nullptr;
@@ -38,10 +38,13 @@ namespace mumfim
 
     switch(problem_type_index){
       case(10):
-        stepper = new EffectiveKappaEvaluator(mesh, analysis_case, ktf, com);
+        {
+          std::string ktf = (filenames.find("kappa_table_filename") != filenames.end()) ? filenames["kappa_table_filename"] : std::string("");
+          stepper = new EffectiveKappaEvaluator(mesh, analysis_case, ktf, com);
+        }
         break;
       case(11):
-        stepper = new LinearHeatConductionStep(mesh, analysis_case, com);
+        stepper = new LinearHeatConductionStep(mesh, analysis_case, filenames, com);
         break;
       case(21):
         stepper = new LinearTissueStep(mesh, analysis_case, com);

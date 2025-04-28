@@ -16,10 +16,13 @@
 #include "amsiFEA.h"
 #include "gmi.h"
 
+void dump_qp_map(apf::Mesh* mesh, std::string outfile);
+apf::Field *read_qp_map(std::string(filename), apf::Mesh *mesh);
 namespace mumfim
 {
   LinearHeatConductionStep::LinearHeatConductionStep(apf::Mesh * mesh,
                                    const mt::CategoryNode & analysis_case,
+                                   std::unordered_map<std::string, std::string> filenames,
                                    MPI_Comm comm_)
       : amsi::FEAStep(mesh, analysis_case, {}, {}, "macro", comm_)
       , constitutives()
@@ -29,65 +32,12 @@ namespace mumfim
     apf::zeroField(apf_primary_field);
     apf_primary_numbering = apf::createNumbering(apf_primary_field);
 
-    kappa = apf::createIPField(apf_mesh, "kappa", apf::MATRIX, 1);
-    apf::zeroField(kappa);
 
-    bool dumpqpmap = false, readqmap = false;
-    if(dumpqpmap)
-    {
-      FILE *fp;
-      fp = fopen("quadpointmap.txt", "w");
-
-      apf::MeshTag* mesh_tag = apf_mesh->createIntTag("index", 1);
-      int index[1]= {0};
-      apf::MeshEntity *ent;
-      auto *mesh_it = apf_mesh->begin(3);
-      while((ent = apf_mesh->iterate(mesh_it)))
-      {
-        apf_mesh->setIntTag(ent, mesh_tag, index);
-        int model_tag = apf_mesh->getModelTag(mesh->toModel(ent));
-        apf::MeshElement* e = apf::createMeshElement(apf_mesh,ent);
-        apf::Vector3 point;
-        apf::getIntPoint(e,0,0,point);
-        apf::Vector3 xyz;
-        apf::mapLocalToGlobal(e, point, xyz);
-        apf::destroyMeshElement(e);
-        fprintf(fp, "%g, %g, %g, %d, %d\n", xyz[0], xyz[1], xyz[2], model_tag, *index);
-        index[0]++;
-      }
-      fclose(fp);
-    } 
-    if(readqmap) 
-    {
-      FILE *fp;
-      fp = fopen("kappavalues.txt", "r");
-      int mesh_index;
-      std::vector<apf::Matrix3x3*> kappa_me; kappa_me.reserve(apf_mesh->count(3));
-      double kxx, kyy, kzz, kxy, kyz, kzx;
-      while(fscanf(fp, "%d, %lf, %lf, %lf, %lf, %lf, %lf\n",
-            &mesh_index, &kxx, &kyy, &kzz, &kxy, &kyz, &kzx) == 7)
-      {
-        apf::Matrix3x3 *kmatrix = new apf::Matrix3x3(
-          kxx, kxy, kzx,
-          kxy, kyy, kyz,
-          kzx, kyz, kzz
-        );
-        kappa_me[mesh_index] = kmatrix; 
-      }
-      fclose(fp);
-      mesh_index = 0;
-      apf::MeshEntity *ent;
-      auto *mesh_it = apf_mesh->begin(3);
-      while((ent = apf_mesh->iterate(mesh_it)))
-      {
-        apf::setMatrix(kappa, ent, 0, *kappa_me[mesh_index]);
-        mesh_index++;
-      }
-      kappa_me.clear();
-    } 
-
-    // used to place kappa into IPfield by region
-    std::map<int, apf::Matrix3x3> mappa;
+    bool dumpqpmap = filenames.find("quadpoint_list") != filenames.end() && filenames["quadpoint_list"].length() > 0;
+    bool external_qp_map = filenames.find("kappa_list") != filenames.end() && filenames["kappa_list"].length() > 0;
+    if(dumpqpmap) dump_qp_map(apf_mesh, filenames["quadpoint_list"]);
+    kappa = external_qp_map ? read_qp_map(filenames["kappa_list"], apf_mesh) : nullptr;
+     
 
     amsi::applyUniqueRegionTags(apf_mesh);
     
@@ -116,7 +66,7 @@ namespace mumfim
                       "same material is not allowed.\n";
         MPI_Abort(AMSI_COMM_WORLD, 1);
       }
-      if (!readqmap && kappa_mt == nullptr && kappa_tensor_mt == nullptr)
+      if (kappa_mt == nullptr && kappa_tensor_mt == nullptr && !external_qp_map)
       {
         std::cerr << " \"kappa\" or \"kappaTensor\" (thermal conductivity) is "
                      "required for the continuum model.\n";
@@ -124,7 +74,7 @@ namespace mumfim
       }
 
       // This needs to be unique_ptr-ized, as it currently isn't deleted anywhere.
-      apf::Matrix3x3 * kappa_r;
+      apf::Matrix3x3 * kappa_r = nullptr;
 
       if(kappa_mt != nullptr){
         auto k = (*kappa_mt)();
@@ -132,17 +82,15 @@ namespace mumfim
           k  , 0.0, 0.0,
           0.0, k  , 0.0,
           0.0, 0.0, k  );
-      } else {
+      } else if (kappa_tensor_mt != nullptr) {
         kappa_r = new apf::Matrix3x3(
           (*kappa_tensor_mt)(0), (*kappa_tensor_mt)(1), (*kappa_tensor_mt)(2), 
           (*kappa_tensor_mt)(3), (*kappa_tensor_mt)(4), (*kappa_tensor_mt)(5), 
           (*kappa_tensor_mt)(6), (*kappa_tensor_mt)(7), (*kappa_tensor_mt)(8)
         );
       }
-      // Save for the kappa IPField assignment
-      mappa[tag] = *kappa_r;
 
-      if(readqmap)
+      if(external_qp_map && kappa_r == nullptr)
       {
       constitutives[reinterpret_cast<apf::ModelEntity *>(gent)] =
           std::make_unique<LinearHeatIntegrator>(
@@ -155,16 +103,6 @@ namespace mumfim
       }
     }
     gmi_end(gmodel, it);
-
-    /*
-    apf::MeshEntity *ent;
-    auto *mesh_it = apf_mesh->begin(3);
-    while((ent = apf_mesh->iterate(mesh_it)))
-    {
-      int model_tag = apf_mesh->getModelTag(mesh->toModel(ent));
-      apf::setMatrix(kappa, ent, 0, mappa.at(model_tag));
-    }
-    */
 
     
     neumann_bcs.push_back(
@@ -183,7 +121,7 @@ namespace mumfim
   LinearHeatConductionStep::~LinearHeatConductionStep()
   {
     apf::destroyField(apf_primary_field);
-    apf::destroyField(kappa);
+    if(kappa != nullptr) apf::destroyField(kappa);
   }
   void LinearHeatConductionStep::Assemble(amsi::LAS * las)
   {
@@ -239,3 +177,59 @@ namespace mumfim
     return constitutives[apf_mesh->toModel(mesh_entity)].get();
   }
 }
+
+void dump_qp_map(apf::Mesh* mesh, std::string outfile)
+{
+  FILE *fp;
+  fp = fopen(outfile.c_str(), "w");
+
+  int index = 0;
+  apf::MeshEntity *ent;
+  auto *mesh_it = mesh->begin(3);
+  while((ent = mesh->iterate(mesh_it)))
+  {
+    int model_tag = mesh->getModelTag(mesh->toModel(ent));
+    apf::MeshElement* e = apf::createMeshElement(mesh,ent);
+    apf::Vector3 point;
+    apf::getIntPoint(e,0,0,point);
+    apf::Vector3 xyz;
+    apf::mapLocalToGlobal(e, point, xyz);
+    apf::destroyMeshElement(e);
+    fprintf(fp, "%g, %g, %g, %d, %d\n", xyz[0], xyz[1], xyz[2], model_tag, index++);
+  }
+  fclose(fp);
+} 
+
+apf::Field *read_qp_map(std::string(filename), apf::Mesh *mesh)
+{
+  apf::Field *kappa = apf::createIPField(mesh, "kappa", apf::MATRIX, 1);
+  FILE *fp;
+  int mesh_index;
+
+  std::vector<apf::Matrix3x3*> kappa_me(mesh->count(3));  //Matrix for each mesh element
+
+  // File contains mesh element index
+  double kxx, kyy, kzz, kxy, kyz, kzx;
+  fp = fopen(filename.c_str(), "r");
+  while(fscanf(fp, "%d, %lf, %lf, %lf, %lf, %lf, %lf\n",
+        &mesh_index, &kxx, &kyy, &kzz, &kxy, &kyz, &kzx) == 7)
+  {
+    kappa_me[mesh_index] = new apf::Matrix3x3(
+      kxx, kxy, kzx,
+      kxy, kyy, kyz,
+      kzx, kyz, kzz
+    );
+  }
+  fclose(fp);
+
+  mesh_index = 0;
+  apf::MeshEntity *ent;
+  auto *mesh_it = mesh->begin(3);
+  while((ent = mesh->iterate(mesh_it)))
+  {
+    apf::setMatrix(kappa, ent, 0, *kappa_me[mesh_index]);
+    mesh_index++;
+  }
+
+  return kappa;
+} 

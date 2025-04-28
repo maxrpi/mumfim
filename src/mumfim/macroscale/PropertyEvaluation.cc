@@ -50,7 +50,9 @@ namespace mumfim
       std::cerr << R"("solution strategy" must have "num timesteps" trait)";
       MPI_Abort(AMSI_COMM_WORLD, 1);
     }
-    analysis_step_ = createStepper(mesh, *analysis_case, cm, kappa_tag_filename);
+    analysis_step_ = createStepper(mesh, *analysis_case,
+      std::unordered_map<std::string, std::string> {{"kappa_tag_filename", ktf}},
+      cm);
   }
   PropertyEvaluation::~PropertyEvaluation()
   {
