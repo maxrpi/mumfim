@@ -10,6 +10,7 @@ namespace mumfim{
   apf::Field * f_;
   apf::Field * K_ = nullptr;
   apf::DynamicMatrix D;  // elemental kappa
+  bool geometric_entity_kappa;
   apf::Matrix3x3 * getIsotropicKappa(double kii);
   apf::Matrix3x3 * getFullKappa(double xx, double yy, double zz,
                                   double xy, double yz, double zx);

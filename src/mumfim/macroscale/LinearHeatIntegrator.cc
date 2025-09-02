@@ -34,6 +34,7 @@ namespace mumfim
     : amsi::ElementalSystem(temperature,numbering, 1)
     , T_(temperature)
     , D(apf::fromMatrix(*kappa))
+    , geometric_entity_kappa(true)
   {
     ;
   }
@@ -42,6 +43,7 @@ namespace mumfim
     , T_(temperature)
     , K_(kappa)
     , D(3,3)
+    , geometric_entity_kappa(false)
   {
     ;
   }
@@ -58,8 +60,10 @@ namespace mumfim
     ElementalSystem::GetNodalFieldValuesAndNumbers(f, numbering_, e, nenodes, mesh_entity,
                                   field_numbers_, field_values_);
     apf::Matrix3x3 D33;
-    // We have assigned to the K_ (kappa) field. Otherwise, we will have assigned to D already.
-    if(K_ != nullptr){
+    if(geometric_entity_kappa){
+      ; // We've already assigned to D in the constructor
+    } else {
+      // Otherwise we have to pull from _K field.
       apf::getMatrix(K_, mesh_entity, 0, D33);
       D(0,0) = D33[0][0];
       D(0,1) = D33[0][1];
